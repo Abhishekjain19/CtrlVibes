@@ -10,7 +10,7 @@ const options = {
   path: '/v1/projects/dvdolrpnficncqdpduxs/database/query',
   method: 'POST',
   headers: {
-    'Authorization': 'Bearer sbp_266f39d58ac1cc57f725996e13d207a8ad18b6cc',
+    'Authorization': `Bearer ${process.env.SUPABASE_ACCESS_TOKEN}`,
     'Content-Type': 'application/json',
     'Content-Length': data.length
   }
