@@ -37,10 +37,72 @@ const Inventory = () => {
 
   const [isCameraActive, setIsCameraActive] = useState(false);
   const canvasRef = useRef(null);
+  const [scannedBarcode, setScannedBarcode] = useState(null);
+  const barcodeDetectorRef = useRef(null);
+
+  useEffect(() => {
+    if ('BarcodeDetector' in window) {
+      barcodeDetectorRef.current = new window.BarcodeDetector({
+        formats: ['ean_13', 'ean_8', 'upc_a', 'upc_e', 'code_128', 'qr_code', 'data_matrix', 'itf', 'codabar']
+      });
+    }
+  }, []);
+
+  useEffect(() => {
+    let interval;
+    if (isCameraActive && videoRef.current && barcodeDetectorRef.current) {
+      interval = setInterval(async () => {
+        try {
+          const barcodes = await barcodeDetectorRef.current.detect(videoRef.current);
+          if (barcodes.length > 0 && !scannedBarcode) {
+            const code = barcodes[0].rawValue;
+            setScannedBarcode(code);
+            fetchProductFromBarcode(code);
+          }
+        } catch (err) {
+          console.error('Barcode detection error:', err);
+        }
+      }, 200);
+    }
+    return () => clearInterval(interval);
+  }, [isCameraActive, scannedBarcode]);
+
+  const [barcodeData, setBarcodeData] = useState(null);
+  const lastScannedRef = useRef(null);
+
+  const fetchProductFromBarcode = async (code) => {
+    if (lastScannedRef.current === code) return;
+    lastScannedRef.current = code;
+    
+    try {
+      const resp = await fetch(`/off-api/api/v0/product/${code}.json`);
+      const data = await resp.json();
+      if (data.status === 1) {
+        const p = data.product;
+        const details = {
+          name: p.product_name || p.product_name_en || p.generic_name || 'Unknown Product',
+          brand: p.brands || 'Unknown Brand',
+          weight: p.quantity || 'Unknown Weight',
+          image: p.image_url || p.image_front_url || p.image_small_url,
+          barcode: code,
+          category: p.categories?.split(',')[0] || 'Packed'
+        };
+        setBarcodeData(details);
+        setProductNameInput(details.name);
+        setEditProductName(false);
+        setStatus({ type: 'success', message: `Verified: ${details.name}` });
+      }
+    } catch (e) {
+      console.error('OFF API error:', e);
+    }
+  };
 
   const startCamera = async () => {
     setIsCameraActive(true);
     setScanResult(null);
+    setScannedBarcode(null);
+    setBarcodeData(null);
+    lastScannedRef.current = null;
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
       if (videoRef.current) {
@@ -67,7 +129,7 @@ const Inventory = () => {
       const video = videoRef.current;
       const canvas = canvasRef.current;
       
-      const maxDim = 800;
+      const maxDim = 1024;
       let { videoWidth: width, videoHeight: height } = video;
       if (width > maxDim || height > maxDim) {
         if (width > height) {
@@ -112,25 +174,29 @@ const Inventory = () => {
               content: [
                 {
                   type: "text",
-                  text: `You are a high-precision retail product analyzer. Analyze the packaging image and extract:
-1. Product Name (be specific, e.g. "Amul Gold Milk 500ml")
-2. Expiry Date (Format: YYYY-MM-DD)
-3. Barcode Number (If a barcode/UPC/EAN is visible, extract the digits)
-4. Quantity/Weight (e.g. "500g", "1 Litre")
-5. Category (e.g. "Dairy", "Beverage", "Snack", "Bakery")
+                  text: `You are a professional retail auditor. Analyze the provided product packaging image (likely the back or side) and extract:
+1. Product Name (e.g. "Pepsi 500ml", "Lays Magic Masala")
+2. Brand (e.g. "PepsiCo", "Britannia")
+3. Expiry Date: Look for "EXP", "Use By", "Best Before", "BBE", or "MFG + X months". Format: YYYY-MM-DD.
+4. Barcode: Find any 8, 12, or 13 digit number.
+5. Weight/Qty: e.g. "100g", "500ml".
+6. Price/MRP: Look for "MRP", "Rs.", or "₹". Extract the numerical value.
+
+Context: ${barcodeData ? `Verified Barcode Data: ${barcodeData.name} by ${barcodeData.brand}` : 'New Scan'}
 
 Return ONLY a JSON object:
 {
-  "expiry_date": "YYYY-MM-DD", 
   "product_name": "Name",
+  "brand": "Brand",
+  "expiry_date": "YYYY-MM-DD", 
   "barcode": "Digits or null",
   "quantity": "Amount or null",
-  "category": "Category or null",
+  "category": "Category",
+  "price": number or null,
   "confidence": "high/medium/low",
-  "notes": "Brief notes"
+  "notes": "Brief notes on where you found the date/price"
 }
-If no expiry date is found, set "expiry_date": null.
-If barcode is not clear, set "barcode": null.`
+If date is "Best before 6 months from mfg" and mfg is "01/24", calculate "2024-07-01".`
                 },
                 {
                   type: "image_url",
@@ -147,28 +213,60 @@ If barcode is not clear, set "barcode": null.`
       });
       const data = await resp.json();
       const text = data.choices?.[0]?.message?.content || '';
-      const jsonMatch = text.match(/\{[\s\S]*\}/);
-      if (!jsonMatch) throw new Error('No JSON in response');
-      const parsed = JSON.parse(jsonMatch[0]);
-
-      let productName = parsed.product_name;
-      let barcode = parsed.barcode;
-
-      // If barcode found but name is missing, try OpenFoodFacts
-      if (barcode && (!productName || productName === 'unknown')) {
-        try {
-          const offResp = await fetch(`https://world.openfoodfacts.org/api/v0/product/${barcode}.json`);
-          const offData = await offResp.json();
-          if (offData.status === 1) {
-            productName = offData.product.product_name || productName;
-          }
-        } catch (offErr) {
-          console.error("OpenFoodFacts lookup failed", offErr);
+      console.log('AI Raw Response:', text);
+      
+      let parsed = {};
+      try {
+        const jsonMatch = text.match(/\{[\s\S]*\}/);
+        if (jsonMatch) {
+          parsed = JSON.parse(jsonMatch[0]);
+        } else {
+          // Robust markdown parsing fallback
+          parsed = {
+            product_name: text.match(/\*?\*?Product Name\*?\*?:?\s*([^\n\*]+)/i)?.[1]?.trim(),
+            brand: text.match(/\*?\*?Brand\*?\*?:?\s*([^\n\*]+)/i)?.[1]?.trim(),
+            expiry_date: text.match(/\*?\*?Expiry Date\*?\*?:?\s*(\d{4}-\d{2}-\d{2})/)?.[1],
+            barcode: text.match(/\*?\*?Barcode Number\*?\*?:?\s*(\d+)/)?.[1],
+            quantity: text.match(/\*?\*?Quantity\/Weight\*?\*?:?\s*([^\n\*]+)/i)?.[1]?.trim(),
+            category: text.match(/\*?\*?Category\*?\*?:?\s*([^\n\*]+)/i)?.[1]?.trim(),
+            price: text.match(/\*?\*?Price\/MRP\*?\*?:?\s*(\d+)/)?.[1],
+            confidence: text.match(/\*?\*?Confidence\*?\*?:?\s*([^\n\*]+)/i)?.[1]?.trim() || 'low',
+            notes: text.match(/\*?\*?Notes\*?\*?:?\s*([^\n\*]+)/i)?.[1]?.trim()
+          };
         }
+      } catch (err) {
+        throw new Error('Failed to parse AI response. Try entering details manually.');
       }
 
+      // Cleanup "Not visible" or "unknown" strings from AI
+      const clean = (val) => {
+        if (val === null || val === undefined) return null;
+        if (typeof val !== 'string') return val;
+        const low = val.toLowerCase();
+        if (low.includes('not visible') || low.includes('unknown') || low.includes('n/a')) return null;
+        return val.trim();
+      };
+      
+      parsed.product_name = clean(parsed.product_name);
+      parsed.brand = clean(parsed.brand);
+      parsed.barcode = clean(parsed.barcode);
+      parsed.quantity = clean(parsed.quantity);
+      parsed.category = clean(parsed.category);
+      parsed.price = clean(parsed.price);
+
+      // If AI found a barcode that real-time scanner missed, fetch its data
+      if (parsed.barcode && !barcodeData) {
+        await fetchProductFromBarcode(parsed.barcode);
+      }
+
+      let productName = barcodeData?.name || parsed.product_name;
+      let barcode = barcodeData?.barcode || parsed.barcode;
+      let category = barcodeData?.category || parsed.category;
+      let weight = barcodeData?.weight || parsed.quantity;
+      let brand = barcodeData?.brand || parsed.brand;
+
       if (!parsed.expiry_date && (!barcode || barcode === 'null') && (!productName || productName === 'unknown')) {
-        setScanResult({ error: 'No product info or expiry date found. Try a clearer photo of the packaging or barcode.' });
+        setScanResult({ error: 'No product info or expiry date found. Try a clearer photo or enter details manually.' });
         setScanLoading(false);
         return;
       }
@@ -179,19 +277,22 @@ If barcode is not clear, set "barcode": null.`
       const urgency = !expiry ? 'safe' : daysLeft <= 0 ? 'expired' : daysLeft <= 3 ? 'critical' : daysLeft <= 7 ? 'warning' : 'safe';
 
       setScanResult({ 
-        expiryDate: parsed.expiry_date || 'Manual Entry Required', 
+        expiryDate: parsed.expiry_date || new Date().toISOString().split('T')[0], 
         daysLeft, 
         urgency, 
-        productName: productName === 'unknown' ? '' : productName, 
-        barcode: barcode === 'null' ? null : barcode,
-        quantity: parsed.quantity,
-        category: parsed.category,
+        productName: productName || '', 
+        brand: brand || '',
+        barcode: barcode || null,
+        quantity: weight || '',
+        category: category || 'Packed',
+        price: Number(parsed.price) || 0,
         notes: parsed.notes, 
         imageBase64, 
-        confidence: parsed.confidence 
+        confidence: parsed.confidence,
+        isManual: !parsed.expiry_date
       });
-      setProductNameInput(productName === 'unknown' ? '' : productName || '');
-      setEditProductName(productName === 'unknown');
+      setProductNameInput(productName || '');
+      setEditProductName(!productName);
     } catch (e) {
       setScanResult({ error: 'AI analysis failed: ' + e.message });
     }
@@ -205,7 +306,7 @@ If barcode is not clear, set "barcode": null.`
     reader.onload = (ev) => {
       const img = new Image();
       img.onload = () => {
-        const maxDim = 800;
+        const maxDim = 1024;
         let { width, height } = img;
         if (width > maxDim || height > maxDim) {
           if (width > height) {
@@ -239,7 +340,7 @@ If barcode is not clear, set "barcode": null.`
 
     if (!targetItemId) {
       // Batch Scan -> CREATE NEW ITEM
-      if (daysLeft <= 0) {
+      if (daysLeft <= 0 && !scanResult.isManual) {
         setStatus({ type: 'error', message: 'Item is expired. Not added to inventory.' });
         setScanModal(false);
         return;
@@ -258,7 +359,8 @@ If barcode is not clear, set "barcode": null.`
         quantity: scanResult.quantity || "1",
         stock: 1,
         barcode: scanResult.barcode,
-        category: scanResult.category
+        category: scanResult.category || 'Packed',
+        price: scanResult.price || 0
       }]);
 
       if (!error) {
@@ -447,8 +549,8 @@ If barcode is not clear, set "barcode": null.`
                       <div className="flex items-center gap-3 mt-1">
                         <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">{new Date(item.created_at).toLocaleDateString()}</span>
                         <span className={`px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-widest ${
-                          item.status === 'Completed' ? 'bg-green-50 text-green-600' : 
-                          item.status === 'In Transit' ? 'bg-primary/5 text-primary animate-pulse' : 'bg-gray-50 text-gray-400'
+                          item.status === 'Completed' ? 'bg-green-100 text-green-600' : 
+                          item.status === 'In Transit' ? 'bg-primary/10 text-primary animate-pulse' : 'bg-gray-50 text-gray-400'
                         }`}>
                           {item.status}
                         </span>
@@ -518,7 +620,7 @@ If barcode is not clear, set "barcode": null.`
             <motion.div initial={{ y: 50, opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: 50, opacity: 0 }} className="bg-white rounded-[40px] w-full max-w-md p-8 relative shadow-2xl z-10 border border-gray-100">
               <div className="flex justify-between items-start mb-6">
                 <div>
-                  <p className="text-[9px] font-black text-primary uppercase tracking-[0.2em] mb-1">NVIDIA NIM Vision AI</p>
+                  <p className="text-[9px] font-black text-primary uppercase tracking-[0.2em] mb-1">AI Product Intelligence</p>
                   <h3 className="text-2xl font-black text-gray-900 tracking-tight">Expiry Date Scanner</h3>
                 </div>
                 <button onClick={() => setScanModal(false)} className="w-10 h-10 bg-gray-50 rounded-full flex items-center justify-center text-gray-400 hover:text-gray-900 transition-colors">
@@ -537,7 +639,19 @@ If barcode is not clear, set "barcode": null.`
                     ) : (
                       <>
                         <video ref={videoRef} className="w-full h-full object-cover" autoPlay playsInline />
-                        <div className="absolute inset-0 border-4 border-primary/50 m-8 rounded-xl pointer-events-none"></div>
+                        <div className="absolute inset-0 border-4 border-primary/50 m-8 rounded-xl pointer-events-none">
+                          <motion.div 
+                            animate={{ top: ['0%', '100%', '0%'] }} 
+                            transition={{ duration: 3, repeat: Infinity, ease: "linear" }}
+                            className="absolute left-0 right-0 h-1 bg-primary/50 shadow-[0_0_15px_rgba(46,204,113,0.8)] z-20"
+                          />
+                        </div>
+                        <div className="absolute top-4 left-4 bg-black/50 backdrop-blur-md px-3 py-1 rounded-full flex items-center gap-2">
+                           <div className={`w-2 h-2 rounded-full ${scannedBarcode ? 'bg-green-500 animate-pulse' : 'bg-primary animate-ping'}`}></div>
+                           <span className="text-[10px] font-black text-white uppercase tracking-widest">
+                             {scannedBarcode ? `Barcode: ${scannedBarcode}` : 'Scanning Barcode + Expiry...'}
+                           </span>
+                        </div>
                         <button onClick={captureFrame} className="absolute bottom-6 left-1/2 -translate-x-1/2 w-16 h-16 bg-white rounded-full border-4 border-gray-300 flex items-center justify-center hover:scale-105 transition-transform z-10">
                           <div className="w-12 h-12 bg-primary rounded-full pointer-events-none"></div>
                         </button>
@@ -559,102 +673,144 @@ If barcode is not clear, set "barcode": null.`
               {scanLoading && (
                 <div className="py-12 text-center">
                   <div className="w-14 h-14 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-                  <p className="font-black text-gray-900 mb-1">Analyzing with NVIDIA NIM...</p>
-                  <p className="text-xs text-gray-400">Vision AI is reading the expiry date</p>
+                  <p className="font-black text-gray-900 mb-1">Analyzing packaging...</p>
+                  <p className="text-xs text-gray-400">Vision AI is reading the product details</p>
                 </div>
               )}
 
               {scanResult && scanResult.error && (
-                <div className="bg-red-50 border border-red-100 rounded-3xl p-6 text-center">
-                  <span className="material-symbols-outlined text-3xl text-red-400 mb-2 block">error</span>
-                  <p className="font-black text-red-700 text-sm mb-1">{scanResult.error}</p>
-                  <button onClick={() => { setScanResult(null); fileInputRef.current?.click(); }} className="mt-4 px-6 py-2 bg-gray-900 text-white rounded-xl font-black text-xs uppercase tracking-widest">Try Again</button>
+                <div className="flex flex-col items-center justify-center py-10 px-6 text-center bg-red-50/50 rounded-[32px] border border-red-100/50">
+                  <span className="material-symbols-outlined text-5xl text-red-400 mb-4">error_outline</span>
+                  <h4 className="text-red-900 font-black text-lg mb-2">Analysis Incomplete</h4>
+                  <p className="text-red-600/70 text-sm font-medium mb-8 leading-relaxed">{scanResult.error}</p>
+                  
+                  <div className="flex flex-col w-full gap-3">
+                    <button 
+                      onClick={() => { setScanResult(null); setIsCameraActive(true); startCamera(); }}
+                      className="w-full py-4 bg-red-600 text-white rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-red-700 shadow-lg shadow-red-200 transition-all"
+                    >
+                      Try Clearer Photo
+                    </button>
+                    
+                    <div className="relative py-4">
+                      <div className="absolute inset-0 flex items-center"><div className="w-full border-t border-red-100"></div></div>
+                      <div className="relative flex justify-center text-[10px] uppercase font-black text-red-300 bg-white px-2">or</div>
+                    </div>
+
+                    <button 
+                      onClick={() => {
+                        setScanResult({
+                          productName: productNameInput || (barcodeData?.name) || 'New Item',
+                          expiryDate: new Date().toISOString().split('T')[0],
+                          daysLeft: 0,
+                          urgency: 'normal',
+                          confidence: 'manual',
+                          isManual: true,
+                          barcode: scannedBarcode || barcodeData?.barcode,
+                          quantity: barcodeData?.weight || "1",
+                          category: barcodeData?.category || 'Packed',
+                          price: 0,
+                          brand: barcodeData?.brand || ''
+                        });
+                      }}
+                      className="w-full py-4 bg-white border-2 border-gray-200 text-gray-900 rounded-2xl font-black text-xs uppercase tracking-widest hover:border-primary hover:text-primary transition-all"
+                    >
+                      Enter Details Manually
+                    </button>
+                  </div>
                 </div>
               )}
 
               {scanResult && !scanResult.error && (
-                <div className="space-y-4">
-                  <div className={`rounded-3xl p-6 border ${
-                    scanResult.urgency === 'expired' ? 'bg-red-50 border-red-200' :
-                    scanResult.urgency === 'critical' ? 'bg-orange-50 border-orange-200' :
-                    scanResult.urgency === 'warning' ? 'bg-yellow-50 border-yellow-200' : 'bg-green-50 border-green-200'
-                  }`}>
-                    <div className="flex items-center gap-3 mb-3">
-                      <span className={`material-symbols-outlined text-2xl ${
-                        scanResult.urgency === 'expired' ? 'text-red-500' :
-                        scanResult.urgency === 'critical' ? 'text-orange-500' :
-                        scanResult.urgency === 'warning' ? 'text-yellow-600' : 'text-green-600'
-                      }`}>
-                        {scanResult.urgency === 'expired' ? 'dangerous' : scanResult.urgency === 'critical' ? 'warning' : 'check_circle'}
-                      </span>
-                      <div className="flex-1 w-full max-w-[200px]">
-                        {editProductName || scanResult.productName === 'unknown' ? (
-                          <input 
-                            type="text" 
-                            value={productNameInput} 
-                            onChange={e => setProductNameInput(e.target.value)}
-                            onBlur={() => { setEditProductName(false); setScanResult(r => ({...r, productName: productNameInput || 'unknown'})) }}
-                            onKeyDown={e => { if (e.key === 'Enter') { setEditProductName(false); setScanResult(r => ({...r, productName: productNameInput || 'unknown'})) } }}
-                            autoFocus
-                            placeholder="Enter product name..."
-                            className="font-black text-gray-900 border-b-2 border-gray-300 focus:border-primary outline-none bg-transparent w-full transition-colors mb-1 text-base"
-                          />
+                <div className="space-y-6">
+                  {/* Premium Product Card */}
+                  <div className="bg-gray-50 rounded-[32px] overflow-hidden border border-gray-100 shadow-sm">
+                    <div className="flex gap-4 p-4">
+                      <div className="w-24 h-24 bg-white rounded-2xl flex-shrink-0 border border-gray-100 overflow-hidden flex items-center justify-center">
+                        {(barcodeData?.image || scanResult.imageBase64) ? (
+                          <img src={barcodeData?.image || `data:image/jpeg;base64,${scanResult.imageBase64}`} alt={scanResult.productName} className="w-full h-full object-contain" />
                         ) : (
-                          <div className="flex items-center gap-2 group mb-1">
-                            <p className="font-black text-gray-900 truncate">{scanResult.productName || 'Product'}</p>
-                            <button onClick={() => { setProductNameInput(scanResult.productName === 'unknown' ? '' : scanResult.productName || ''); setEditProductName(true); }} className="text-gray-300 hover:text-primary transition-colors flex shrink-0">
-                              <span className="material-symbols-outlined text-sm">edit</span>
-                            </button>
-                          </div>
+                          <span className="material-symbols-outlined text-4xl text-gray-200">image</span>
                         )}
-                        <p className="text-xs text-gray-500">Confidence: {scanResult.confidence}</p>
                       </div>
-                    </div>
-                    <p className={`text-2xl font-black ${
-                      scanResult.urgency === 'expired' ? 'text-red-700' :
-                      scanResult.urgency === 'critical' ? 'text-orange-700' :
-                      scanResult.urgency === 'warning' ? 'text-yellow-700' : 'text-green-700'
-                    }`}>
-                      {scanResult.urgency === 'expired' ? '⛔ EXPIRED' :
-                       scanResult.urgency === 'critical' ? `🔴 ${scanResult.daysLeft} days left` :
-                       scanResult.urgency === 'warning' ? `🟡 ${scanResult.daysLeft} days left` :
-                       `🟢 ${scanResult.daysLeft} days left`}
-                    </p>
-                    
-                    <div className="mt-4 grid grid-cols-2 gap-4 border-t border-gray-100 pt-4">
-                       <div className="space-y-1">
-                          <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest">Barcode</p>
-                          <p className="text-xs font-bold text-gray-700 font-mono">{scanResult.barcode || 'Not Detected'}</p>
-                       </div>
-                       <div className="space-y-1 text-right">
-                          <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest">Quantity</p>
-                          <p className="text-xs font-bold text-gray-700">{scanResult.quantity || 'Unknown'}</p>
-                       </div>
-                       <div className="space-y-1">
-                          <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest">Category</p>
-                          <p className="text-xs font-bold text-gray-700">{scanResult.category || 'General'}</p>
-                       </div>
-                       <div className="space-y-1 text-right">
-                          <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest">Expiry</p>
-                          {scanResult.expiryDate === 'Manual Entry Required' ? (
+                      <div className="flex-1 min-w-0 flex flex-col justify-center">
+                        <div className="flex items-center gap-2 group">
+                          {editProductName ? (
                             <input 
-                              type="date" 
-                              onChange={(e) => setScanResult(prev => ({...prev, expiryDate: e.target.value}))}
-                              className="text-xs font-bold text-primary border-b border-primary/20 outline-none bg-transparent"
+                              type="text" 
+                              value={productNameInput} 
+                              onChange={e => setProductNameInput(e.target.value)}
+                              onBlur={() => setEditProductName(false)}
+                              autoFocus
+                              className="font-black text-gray-900 border-b-2 border-primary outline-none bg-transparent w-full transition-colors text-sm"
                             />
                           ) : (
-                            <p className="text-xs font-bold text-gray-700">{scanResult.expiryDate}</p>
+                            <>
+                              <h4 className="font-black text-gray-900 truncate text-base">{productNameInput || scanResult.productName}</h4>
+                              <button onClick={() => setEditProductName(true)} className="text-gray-300 hover:text-primary transition-colors flex shrink-0">
+                                <span className="material-symbols-outlined text-xs">edit</span>
+                              </button>
+                            </>
                           )}
-                       </div>
+                        </div>
+                        <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mt-1">{scanResult.brand || 'Verified Product'}</p>
+                        <div className="flex items-center gap-3 mt-2">
+                           <span className="px-2 py-0.5 bg-white border border-gray-100 rounded-md text-[9px] font-black text-gray-400 tracking-widest">{scanResult.quantity || 'Standard Qty'}</span>
+                           <div className="flex items-center gap-1">
+                             <span className="text-[9px] font-black text-gray-400 uppercase">₹</span>
+                             <input 
+                               type="number"
+                               value={scanResult.price}
+                               onChange={(e) => setScanResult(prev => ({ ...prev, price: e.target.value }))}
+                               className="w-12 bg-transparent text-[9px] font-black text-gray-900 border-b border-gray-200 focus:border-primary outline-none"
+                             />
+                           </div>
+                           {scanResult.barcode && <span className="text-[9px] font-bold text-primary font-mono">{scanResult.barcode}</span>}
+                        </div>
+                      </div>
                     </div>
-                    {scanResult.notes && <p className="text-[10px] text-gray-500 mt-4 italic bg-white/50 p-2 rounded-lg">{scanResult.notes}</p>}
+                    
+                    <div className={`px-6 py-4 flex items-center justify-between border-t border-gray-100 ${
+                      scanResult.urgency === 'expired' ? 'bg-red-50/50' :
+                      scanResult.urgency === 'critical' ? 'bg-orange-50/50' : 'bg-green-50/50'
+                    }`}>
+                      <div>
+                        <p className="text-[9px] font-black text-gray-400 uppercase tracking-[0.2em] mb-1">AI Expiry Analysis</p>
+                        <p className={`text-xl font-black ${
+                          scanResult.urgency === 'expired' ? 'text-red-600' :
+                          scanResult.urgency === 'critical' ? 'text-orange-600' : 'text-green-600'
+                        }`}>
+                          {scanResult.urgency === 'expired' ? '⛔ EXPIRED' : `${scanResult.daysLeft} Days Left`}
+                        </p>
+                      </div>
+                      <div className="text-right">
+                         <input 
+                           type="date"
+                           value={scanResult.expiryDate}
+                           onChange={(e) => {
+                             const newDate = e.target.value;
+                             const expiry = new Date(newDate);
+                             const now = new Date();
+                             const daysLeft = Math.ceil((expiry - now) / (1000 * 60 * 60 * 24));
+                             const urgency = daysLeft <= 0 ? 'expired' : daysLeft <= 3 ? 'critical' : 'normal';
+                             setScanResult(prev => ({ ...prev, expiryDate: newDate, daysLeft, urgency }));
+                           }}
+                           className="bg-transparent font-black text-gray-900 text-right outline-none cursor-pointer hover:text-primary transition-colors text-[10px]"
+                         />
+                         <p className="text-[9px] text-gray-400 font-bold uppercase tracking-widest">{scanResult.isManual ? 'Manual Entry' : `Confidence: ${scanResult.confidence}`}</p>
+                      </div>
+                    </div>
                   </div>
 
-                  {scanResult.urgency === 'expired' ? (
-                    <p className="text-sm text-red-600 font-bold text-center">This item will be deleted from inventory.</p>
-                  ) : scanResult.urgency === 'critical' ? (
-                    <p className="text-sm text-orange-700 font-bold text-center">Will auto-list on marketplace & notify all users.</p>
-                  ) : null}
+                  {scanResult.notes && (
+                    <div className="bg-blue-50/50 rounded-2xl p-4 border border-blue-100/50">
+                       <p className="text-[10px] text-blue-600 font-black uppercase tracking-widest mb-1 flex items-center gap-2">
+                         <span className="material-symbols-outlined text-sm">info</span>
+                         AI Observation
+                       </p>
+                       <p className="text-xs text-blue-800 font-medium italic">"{scanResult.notes}"</p>
+                    </div>
+                  )}
 
                   <div className="flex flex-col gap-3">
                     <button

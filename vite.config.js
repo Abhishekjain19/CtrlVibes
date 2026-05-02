@@ -14,6 +14,12 @@ export default defineConfig({
         changeOrigin: true,
         rewrite: (path) => path.replace(/^\/nvidia-api/, ''),
         secure: true,
+      },
+      '/off-api': {
+        target: 'https://world.openfoodfacts.org',
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/off-api/, ''),
+        secure: true,
       }
     }
   }
