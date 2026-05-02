@@ -41,27 +41,27 @@ const Impact = () => {
   const fetchImpactStats = async () => {
     setLoading(true);
     try {
-      // 1. Fetch aggregate metrics from ALL Profiles (Global Impact)
-      const { data: profiles } = await supabase.from('profiles').select('total_redirected_weight, carbon_offset, total_items_saved, total_value_recovered');
-      
-      const totalWeight = (profiles || []).reduce((acc, curr) => acc + (Number(curr.total_redirected_weight) || 0), 0);
-      const totalCarbon = (profiles || []).reduce((acc, curr) => acc + (Number(curr.carbon_offset) || 0), 0);
-      const totalItems = (profiles || []).reduce((acc, curr) => acc + (Number(curr.total_items_saved) || 0), 0);
-      const totalValue = (profiles || []).reduce((acc, curr) => acc + (Number(curr.total_value_recovered) || 0), 0);
-
-      // 2. Fetch completed handoffs for monthly historical trends
-      const { data: completedHandoffs } = await supabase
+      // 1. Fetch ALL completed handoffs for Global Source of Truth
+      const { data: allCompleted } = await supabase
         .from('handoffs')
-        .select('created_at, weight, bid_amount, status, listings(weight)')
+        .select('weight, bid_amount, quantity_ordered, created_at, listings(weight, price)')
         .eq('status', 'Completed');
 
-      // 3. Fetch logistics batches for REAL Fuel Savings (Algorithmic)
+      // 2. Fetch logistics batches for REAL Fuel Savings (Algorithmic based on consolidation)
       const { data: batches } = await supabase
         .from('delivery_batches')
-        .select('*, handoffs(id)');
+        .select('id, scheduled_at, created_at, handoffs(id)');
       
-      const batchedItems = (batches || []).reduce((acc, b) => acc + (b.handoffs?.length > 1 ? b.handoffs.length : 0), 0);
-      const realFuelSaved = Number((batchedItems * 1.2).toFixed(1));
+      // Calculate Global Stats
+      const totalItems = (allCompleted || []).reduce((acc, h) => acc + (Number(h.quantity_ordered) || 1), 0);
+      const totalWeight = (allCompleted || []).reduce((acc, h) => acc + (Number(h.weight) || Number(h.listings?.weight) || 0), 0);
+      const totalValue = (allCompleted || []).reduce((acc, h) => acc + (Number(h.bid_amount) || Number(h.listings?.price) || 0), 0);
+      const totalCarbon = Number((totalWeight * 2.5).toFixed(1)); // Standard CO2 offset factor
+      
+      // Fuel Savings: Every handoff in a batch (beyond the first) represents a saved individual trip
+      const batchedTripsSaved = (batches || []).reduce((acc, b) => acc + (b.handoffs?.length > 1 ? b.handoffs.length - 1 : 0), 0);
+      const fuelPerTrip = 0.85; // Average liters saved per consolidation trip
+      const realFuelSaved = Number((batchedTripsSaved * fuelPerTrip).toFixed(1));
       
       setStats({
         orders: totalItems, 
@@ -71,7 +71,7 @@ const Impact = () => {
         carbonOffset: totalCarbon
       });
 
-      // 4. Generate Monthly Data Dynamically (Consistent with KPIs)
+      // 3. Generate Monthly Data Dynamically
       const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
       const now = new Date();
       const last6Months = [];
@@ -91,28 +91,27 @@ const Impact = () => {
       }
 
       // Populate history from Handoffs
-      if (completedHandoffs) {
-        completedHandoffs.forEach(h => {
+      if (allCompleted) {
+        allCompleted.forEach(h => {
           const hDate = new Date(h.created_at);
           const target = last6Months.find(m => m.monthIdx === hDate.getMonth() && m.year === hDate.getFullYear());
           if (target) {
-            target.orders += 1;
-            // Use handoff weight or fallback to listing weight
+            target.orders += (Number(h.quantity_ordered) || 1);
             const weightVal = Number(h.weight) || Number(h.listings?.weight) || 0;
             target.weightRedirected += weightVal;
-            target.moneySaved += Number(h.bid_amount) || 0;
-            target.carbonOffset += Number((weightVal * 0.5).toFixed(1));
+            target.moneySaved += (Number(h.bid_amount) || Number(h.listings?.price) || 0);
+            target.carbonOffset += Number((weightVal * 2.5).toFixed(1));
           }
         });
       }
 
-      // Populate Fuel History from Batches (to match the 13.0L in KPI)
+      // Populate Fuel History from Batches
       if (batches) {
         batches.forEach(b => {
           const bDate = new Date(b.scheduled_at || b.created_at);
           const target = last6Months.find(m => m.monthIdx === bDate.getMonth() && m.year === bDate.getFullYear());
           if (target && b.handoffs?.length > 1) {
-            target.fuelSaved += Number((b.handoffs.length * 1.2).toFixed(1));
+            target.fuelSaved += Number(((b.handoffs.length - 1) * fuelPerTrip).toFixed(1));
           }
         });
       }

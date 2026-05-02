@@ -6,12 +6,30 @@ import fact1 from '../assets/fact-1.png';
 import fact2 from '../assets/fact-2.png';
 import fact3 from '../assets/fact-3.png';
 
+import { supabase } from '../supabaseClient';
+
 const Landing = () => {
+  const [impactStats, setImpactStats] = React.useState({ meals: 0, weight: 0 });
+
+  React.useEffect(() => {
+    const fetchStats = async () => {
+      const { data } = await supabase
+        .from('handoffs')
+        .select('weight, listings(weight)')
+        .eq('status', 'Completed');
+      
+      const totalWeight = (data || []).reduce((acc, h) => acc + (Number(h.weight) || Number(h.listings?.weight) || 0), 0);
+      const totalMeals = Math.floor(totalWeight / 0.5);
+      setImpactStats({ meals: totalMeals, weight: totalWeight });
+    };
+    fetchStats();
+  }, []);
+
   const detailedFacts = [
     { title: "Global Scale", text: "1.3 Billion tons of food is wasted globally every year.", image: fact1 },
-    { title: "Direct Impact", text: "Zerra has rescued 50,000+ meals this quarter.", image: fact2 },
+    { title: "Direct Impact", text: `Zerra has rescued ${impactStats.meals.toLocaleString()}+ meals to date.`, image: fact2 },
     { title: "Climate Action", text: "Food waste accounts for 8% of global emissions.", image: fact3 },
-    { title: "Water Scarcity", text: "Saving 1kg of food saves 1,000L of water.", image: fact1 },
+    { title: "Water Scarcity", text: `Saving ${impactStats.weight.toLocaleString()}kg of food saves millions of liters of water.`, image: fact1 },
     { title: "Global Hunger", text: "We can feed 2B people with the food we waste.", image: fact2 },
   ];
 
