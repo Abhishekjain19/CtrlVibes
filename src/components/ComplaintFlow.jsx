@@ -128,18 +128,43 @@ const ComplaintFlow = ({ onComplete }) => {
         evidence_urls: uploadedUrls.length > 0 ? uploadedUrls : evidence.slice(0, 3), // Fallback if upload fails
         status: 'Pending',
         consumer_name: userProfile?.full_name || 'Valued Consumer',
-        admin_email: 'varunsugandhi0@gmail.com',
+        admin_email: 'abhi1912005@gmail.com',
         case_id: caseId
       }]);
 
       if (error && error.code !== '42P01') throw error;
 
-      // 2. Simulated Professional Email Dispatch
-      // In a real production environment, you would use a Supabase Edge Function with Resend/SendGrid.
-      console.log(`[SYSTEM] Dispatching official integrity report ${caseId} to varunsugandhi0@gmail.com`);
-      await new Promise(resolve => setTimeout(resolve, 2000)); // Simulate network latency for "premium" feel
+      // 3. Real Email Dispatch via FormSubmit
+      const emailPayload = {
+        _subject: `[ZERRA INTEGRITY REPORT] ${caseId} - ${classification}`,
+        _template: 'table', // Professional table layout
+        _captcha: 'false',
+        _cc: user.email, // Carbon copy to the user for their records
+        "Case ID": caseId,
+        "Reporter Name": userProfile?.full_name || 'Valued Partner',
+        "Reporter Email": user.email,
+        "Issue Category": classification,
+        "Description": description,
+        "Order Reference": selectedOrder.id,
+        "Merchant": selectedOrder.listings?.name,
+        "Evidence Links": uploadedUrls.length > 0 ? uploadedUrls.join(', ') : 'No images uploaded',
+        "System Timestamp": new Date().toLocaleString()
+      };
 
-      // 3. Local Notifications
+      try {
+        await fetch("https://formsubmit.co/ajax/abhi1912005@gmail.com", {
+          method: "POST",
+          headers: { 
+            'Content-Type': 'application/json',
+            'Accept': 'application/json'
+          },
+          body: JSON.stringify(emailPayload)
+        });
+      } catch (emailErr) {
+        console.error('Email dispatch failed:', emailErr);
+      }
+
+      // 4. Local Notifications
       await supabase.from('notifications').insert([{
         user_id: user.id,
         title: 'Report Dispatched ⚖️',
@@ -160,7 +185,7 @@ const ComplaintFlow = ({ onComplete }) => {
 
       onComplete({ 
         type: 'success', 
-        message: `Report ${caseId} has been successfully filed and dispatched to compliance (varunsugandhi0@gmail.com).` 
+        message: `Report ${caseId} has been successfully filed and dispatched to compliance (abhi1912005@gmail.com).` 
       });
     } catch (err) {
       console.error(err);

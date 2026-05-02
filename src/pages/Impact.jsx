@@ -262,13 +262,13 @@ const Impact = () => {
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 md:mb-10 gap-6">
         <div>
           <h1 className="text-2xl md:text-3xl font-black text-gray-900 tracking-tight">
-            {activeTab === 'analytics' ? 'Impact Intelligence' : 'Consumer Integrity'}
+            {activeTab === 'analytics' ? 'Impact Intelligence' : 'Integrity Protection'}
           </h1>
           <p className="text-gray-500 mt-1 font-medium text-sm md:text-base">
             {activeTab === 'analytics' ? 'Corporate redistribution metrics and growth analysis.' : 'Official report filing and case management.'}
           </p>
         </div>
-        {userRole === 'Consumer' && (
+        {['consumer', 'ngo'].includes(userRole?.toLowerCase()) && (
           <div className="flex bg-white p-1 rounded-xl border border-gray-200 shadow-sm w-full md:w-auto overflow-hidden">
             <button 
               onClick={() => setActiveTab('analytics')} 
@@ -286,7 +286,7 @@ const Impact = () => {
         )}
       </div>
 
-      {activeTab === 'complaint' && userRole === 'Consumer' ? (
+      {activeTab === 'complaint' && ['consumer', 'ngo'].includes(userRole?.toLowerCase()) ? (
         <div className="animate-in fade-in slide-in-from-bottom-6 duration-700">
            <div className="mb-10 text-center max-w-xl mx-auto">
               <h2 className="text-2xl md:text-3xl font-black text-gray-900 tracking-tight mb-3">Integrity Protection</h2>
