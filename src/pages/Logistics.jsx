@@ -94,30 +94,30 @@ const Logistics = () => {
   return (
     <div className="pt-24 px-6 max-w-7xl mx-auto pb-24 min-h-screen">
       <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center mb-10 gap-6">
-        <div>
-          <h1 className="text-4xl font-black text-gray-900 tracking-tight">Logistics Intelligence</h1>
-          <p className="text-gray-500 mt-1 font-medium">Algorithmic batching for sustainable fuel and cost optimization.</p>
+        <div className="w-full md:w-auto">
+          <h1 className="text-2xl md:text-4xl font-black text-gray-900 tracking-tight">Logistics Intelligence</h1>
+          <p className="text-gray-500 mt-1 font-medium text-sm md:text-base">Algorithmic batching for sustainable fuel and cost optimization.</p>
         </div>
         
-        <div className="grid grid-cols-3 gap-4 w-full lg:w-auto">
-          <div className="bg-white p-6 rounded-3xl border border-gray-100 shadow-sm text-center">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 w-full lg:w-auto">
+          <div className="bg-white p-5 md:p-6 rounded-2xl md:rounded-3xl border border-gray-100 shadow-sm text-center">
              <p className="text-[10px] font-black text-primary uppercase tracking-widest mb-1">Fuel Saved</p>
-             <p className="text-2xl font-black text-gray-900">{stats.fuelSaved}L</p>
+             <p className="text-xl md:text-2xl font-black text-gray-900">{stats.fuelSaved}L</p>
           </div>
-          <div className="bg-white p-6 rounded-3xl border border-gray-100 shadow-sm text-center">
+          <div className="bg-white p-5 md:p-6 rounded-2xl md:rounded-3xl border border-gray-100 shadow-sm text-center">
              <p className="text-[10px] font-black text-tertiary uppercase tracking-widest mb-1">CO2 Offset</p>
-             <p className="text-2xl font-black text-gray-900">{stats.co2Reduced}kg</p>
+             <p className="text-xl md:text-2xl font-black text-gray-900">{stats.co2Reduced}kg</p>
           </div>
-          <div className="bg-white p-6 rounded-3xl border border-gray-100 shadow-sm text-center">
+          <div className="bg-white p-5 md:p-6 rounded-2xl md:rounded-3xl border border-gray-100 shadow-sm text-center">
              <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Clusters</p>
-             <p className="text-2xl font-black text-gray-900">{stats.totalBatches}</p>
+             <p className="text-xl md:text-2xl font-black text-gray-900">{stats.totalBatches}</p>
           </div>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 h-[600px]">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 min-h-[500px] lg:h-[600px]">
         {/* Map Cluster View */}
-        <div className="lg:col-span-2 bg-white rounded-[40px] border border-gray-100 shadow-sm overflow-hidden relative">
+        <div className="lg:col-span-2 bg-white rounded-3xl md:rounded-[40px] border border-gray-100 shadow-sm overflow-hidden relative h-[400px] lg:h-full">
           <MapContainer 
             center={[12.9716, 77.5946]} 
             zoom={13} 
@@ -161,7 +161,7 @@ const Logistics = () => {
         </div>
 
         {/* Batch Queue */}
-        <div className="bg-gray-50 rounded-[40px] p-8 border border-gray-200 overflow-y-auto space-y-4 no-scrollbar">
+        <div className="bg-gray-50 rounded-3xl md:rounded-[40px] p-6 md:p-8 border border-gray-200 overflow-y-auto space-y-4 no-scrollbar max-h-[500px] md:max-h-full">
            <div className="flex justify-between items-center mb-6">
               <h3 className="text-sm font-black text-gray-400 uppercase tracking-widest">Active Buffers</h3>
               <span className="bg-blue-100 text-blue-600 px-2 py-0.5 rounded-full text-[8px] font-black uppercase">Gathering</span>
@@ -251,23 +251,23 @@ const Logistics = () => {
         </div>
       </div>
 
-      <div className="mt-12 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-         <div className="bg-white p-8 rounded-[40px] border border-gray-100 shadow-sm">
+      <div className="mt-12 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+         <div className="bg-white p-6 md:p-8 rounded-3xl md:rounded-[40px] border border-gray-100 shadow-sm">
             <span className="material-symbols-outlined text-3xl text-primary mb-4">route</span>
             <h5 className="font-black text-gray-900 mb-1 text-sm uppercase">Smart Routing</h5>
             <p className="text-xs text-gray-500 font-medium">Dynamic delivery paths updated in real-time based on traffic and cluster density.</p>
          </div>
-         <div className="bg-white p-8 rounded-[40px] border border-gray-100 shadow-sm">
+         <div className="bg-white p-6 md:p-8 rounded-3xl md:rounded-[40px] border border-gray-100 shadow-sm">
             <span className="material-symbols-outlined text-3xl text-tertiary mb-4">nest_eco_leaf</span>
             <h5 className="font-black text-gray-900 mb-1 text-sm uppercase">Carbon Credits</h5>
             <p className="text-xs text-gray-500 font-medium">Earn institutional carbon credits for every consolidated redistribution run.</p>
          </div>
-         <div className="bg-white p-8 rounded-[40px] border border-gray-100 shadow-sm">
+         <div className="bg-white p-6 md:p-8 rounded-3xl md:rounded-[40px] border border-gray-100 shadow-sm">
             <span className="material-symbols-outlined text-3xl text-amber-500 mb-4">schedule</span>
             <h5 className="font-black text-gray-900 mb-1 text-sm uppercase">Buffer Buffer</h5>
             <p className="text-xs text-gray-500 font-medium">Fixed 3-hour pooling window ensures maximum efficiency without compromising freshness.</p>
          </div>
-         <div className="bg-white p-8 rounded-[40px] border border-gray-100 shadow-sm">
+         <div className="bg-white p-6 md:p-8 rounded-3xl md:rounded-[40px] border border-gray-100 shadow-sm">
             <span className="material-symbols-outlined text-3xl text-gray-900 mb-4">monitoring</span>
             <h5 className="font-black text-gray-900 mb-1 text-sm uppercase">Cost Arbitrage</h5>
             <p className="text-xs text-gray-500 font-medium">Save up to 40% on delivery costs through shared-mile redistribution logic.</p>

@@ -59,14 +59,14 @@ const Settings = () => {
         </div>
       </div>
 
-      <form onSubmit={handleSave} className="bg-white rounded-[40px] border border-gray-100 p-10 shadow-sm space-y-8">
+      <form onSubmit={handleSave} className="bg-white rounded-3xl md:rounded-[40px] border border-gray-100 p-6 md:p-10 shadow-sm space-y-6 md:space-y-8">
         <div className="space-y-2">
           <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Full Name / Hub Name</label>
           <input 
             type="text" 
             value={profile.full_name} 
             onChange={(e) => setProfile({ ...profile, full_name: e.target.value })}
-            className="w-full bg-gray-50 border border-gray-100 rounded-2xl px-6 py-4 font-bold text-gray-900 focus:border-primary outline-none transition-all"
+            className="w-full bg-gray-50 border border-gray-100 rounded-2xl px-6 py-4 font-bold text-gray-900 focus:border-primary outline-none transition-all placeholder:text-gray-300"
           />
         </div>
 
@@ -87,7 +87,7 @@ const Settings = () => {
             value={profile.phone || ''} 
             onChange={(e) => setProfile({ ...profile, phone: e.target.value })}
             placeholder="+91 00000 00000"
-            className="w-full bg-gray-50 border border-gray-100 rounded-2xl px-6 py-4 font-bold text-gray-900 focus:border-primary outline-none transition-all"
+            className="w-full bg-gray-50 border border-gray-100 rounded-2xl px-6 py-4 font-bold text-gray-900 focus:border-primary outline-none transition-all placeholder:text-gray-300"
           />
         </div>
 
@@ -98,12 +98,12 @@ const Settings = () => {
             value={profile.address || ''} 
             onChange={(e) => setProfile({ ...profile, address: e.target.value })}
             placeholder="Enter full institutional address..."
-            className="w-full bg-gray-50 border border-gray-100 rounded-2xl px-6 py-4 font-bold text-gray-900 focus:border-primary outline-none transition-all resize-none"
+            className="w-full bg-gray-50 border border-gray-100 rounded-2xl px-6 py-4 font-bold text-gray-900 focus:border-primary outline-none transition-all resize-none placeholder:text-gray-300"
           />
         </div>
 
-        <div className="pt-6">
-          <button type="submit" className="w-full py-5 bg-gray-900 text-white rounded-2xl font-black text-xs uppercase tracking-[0.2em] hover:bg-black transition-all shadow-xl shadow-gray-200">
+        <div className="pt-4 md:pt-6">
+          <button type="submit" className="w-full py-5 bg-[#0A0A0A] text-white rounded-2xl font-black text-xs uppercase tracking-[0.2em] hover:bg-black transition-all shadow-xl shadow-gray-100">
             Update Profile Credentials
           </button>
         </div>

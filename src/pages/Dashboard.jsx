@@ -239,10 +239,10 @@ const Dashboard = () => {
         .custom-map-tooltip { background: white; border-radius: 8px; padding: 4px 8px; font-weight: 800; font-size: 10px; text-transform: uppercase; }
       `}</style>
       
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-end mb-12 gap-6">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-end mb-8 md:mb-12 gap-6">
         <div>
-          <h1 className="text-4xl font-black text-gray-900 tracking-tight">Welcome, {userName}</h1>
-          <p className="text-gray-500 mt-2 font-medium">
+          <h1 className="text-2xl md:text-4xl font-black text-gray-900 tracking-tight">Welcome, {userName}</h1>
+          <p className="text-sm md:text-base text-gray-500 mt-2 font-medium">
             {role === 'NGO' && 'Rapid acquisition and redistribution alerts.'}
             {role === 'Restaurant' && 'Frictionless surplus orchestration.'}
             {role === 'Product Seller' && 'Inventory management and sell-through optimization.'}
@@ -253,7 +253,7 @@ const Dashboard = () => {
         {(role === 'Restaurant' || role === 'Product Seller') && (
           <button 
             onClick={() => setShowQuickList(true)}
-            className="px-10 py-5 bg-gray-900 text-white rounded-[24px] font-black text-xs uppercase tracking-[0.2em] shadow-2xl shadow-gray-200 hover:scale-105 transition-all flex items-center gap-3"
+            className="w-full md:w-auto px-8 md:px-10 py-4 md:py-5 bg-gray-900 text-white rounded-2xl md:rounded-[24px] font-black text-[10px] md:text-xs uppercase tracking-[0.2em] shadow-2xl shadow-gray-200 hover:scale-105 transition-all flex items-center justify-center gap-3"
           >
             <span className="material-symbols-outlined">add_circle</span>
             Add {role === 'Restaurant' ? 'Food' : 'Inventory'}
@@ -267,27 +267,39 @@ const Dashboard = () => {
           {/* NGO VIEW */}
           {role === 'NGO' && (
             <>
-              <div className="bg-red-50 border border-red-100 rounded-[40px] p-10 relative overflow-hidden group">
+              <div className="bg-red-50 border border-red-100 rounded-3xl md:rounded-[40px] p-6 md:p-10 relative overflow-hidden group">
                 <div className="relative z-10">
                   <span className="px-3 py-1 bg-red-600 text-white text-[9px] font-black rounded-full uppercase tracking-widest mb-4 inline-block">Priority Alert</span>
-                  <h2 className="text-3xl font-black text-gray-900 tracking-tight mb-2">Institutional Priority Active</h2>
-                  <p className="text-gray-600 font-medium max-w-md">Nearby surplus is reserved for your facility. Claim within the priority window.</p>
-                  <button className="mt-8 px-10 py-4 bg-gray-900 text-white rounded-2xl font-black text-xs uppercase tracking-widest hover:scale-105 transition-all">View All Alerts</button>
+                  <h2 className="text-2xl md:text-3xl font-black text-gray-900 tracking-tight mb-2">Institutional Priority Active</h2>
+                  <p className="text-gray-600 font-medium max-w-md text-sm">Nearby surplus is reserved for your facility. Claim within the priority window.</p>
+                  <button className="mt-8 w-full md:w-auto px-10 py-4 bg-gray-900 text-white rounded-2xl font-black text-xs uppercase tracking-widest hover:scale-105 transition-all">View All Alerts</button>
                 </div>
-                <span className="absolute right-[-20px] top-[-20px] material-symbols-outlined text-[160px] text-red-500/5 rotate-12 transition-transform group-hover:scale-110">emergency</span>
+                <span className="absolute right-[-20px] top-[-20px] material-symbols-outlined text-[100px] md:text-[160px] text-red-500/5 rotate-12 transition-transform group-hover:scale-110">emergency</span>
               </div>
               
-              <div className="bg-white rounded-[40px] border border-gray-100 p-10 shadow-sm">
-                <h3 className="font-black text-gray-900 mb-8 text-xs uppercase tracking-widest">Active Redistribution Zones</h3>
-                <div className="h-[400px] rounded-[32px] overflow-hidden">
-                   <MapContainer center={userCoords} zoom={14} zoomControl={false} attributionControl={false} style={{ height: '100%', width: '100%' }}>
-                     <TileLayer url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png" />
-                     <Marker position={userCoords} icon={userLocationIcon}>
-                        <Popup>
-                           <p className="font-black text-xs">You are here</p>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 h-auto md:h-[calc(100vh-280px)]">
+              {/* Map View */}
+              <div className="bg-white rounded-3xl md:rounded-[40px] border border-gray-100 shadow-sm overflow-hidden relative h-[400px] md:h-full">
+                <MapContainer 
+                  center={[12.9716, 77.5946]} 
+                  zoom={13} 
+                  style={{ height: '100%', width: '100%' }}
+                  zoomControl={false}
+                >
+                  <TileLayer url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png" />
+                  <MarkerClusterGroup>
+                    {listings.map(item => (
+                      <Marker 
+                        key={item.id} 
+                        position={[item.profiles?.location_lat || 12.9716, item.profiles?.location_lng || 77.5946]}
+                        icon={item.type === 'Cooked' ? foodIcon : packedIcon}
+                      >
+                        <Popup className="custom-popup">
+                          <div className="p-2">
+                            <h4 className="font-black text-gray-900">{item.name}</h4>
+                            <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">{item.type}</p>
+                          </div>
                         </Popup>
-                     </Marker>
-                     {listings.filter(l => l.status === 'Live').map(l => (
                        <Marker 
                         key={l.id} 
                         position={[userCoords[0] + (Math.random()-0.5)*0.01, userCoords[1] + (Math.random()-0.5)*0.01]} 
@@ -311,32 +323,32 @@ const Dashboard = () => {
           {/* RESTAURANT VIEW */}
           {role === 'Restaurant' && (
             <>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-                <div className="bg-white border border-gray-100 rounded-[40px] p-10 shadow-sm">
-                   <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-4">Total Redirected</p>
-                   <p className="text-5xl font-black text-gray-900 tracking-tighter">{userProfile?.total_redirected || 0} <span className="text-xl text-gray-300">kg</span></p>
-                   <p className="text-xs text-gray-500 font-medium mt-6">Top {userProfile?.top_performer_percent || 0}% performer in your district.</p>
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 md:gap-8">
+                <div className="bg-white border border-gray-100 rounded-3xl md:rounded-[40px] p-8 md:p-10 shadow-sm">
+                   <p className="text-[9px] md:text-[10px] font-black text-gray-400 uppercase tracking-widest mb-4">Total Redirected</p>
+                   <p className="text-4xl md:text-5xl font-black text-gray-900 tracking-tighter">{userProfile?.total_redirected || 0} <span className="text-lg md:text-xl text-gray-300">kg</span></p>
+                   <p className="text-[10px] md:text-xs text-gray-500 font-medium mt-6">Top {userProfile?.top_performer_percent || 0}% performer in your district.</p>
                 </div>
-                <div className="bg-primary rounded-[40px] p-10 text-white shadow-xl shadow-primary/20">
-                   <p className="text-[10px] font-black text-white/60 uppercase tracking-widest mb-4">NGO Network</p>
-                   <p className="text-5xl font-black tracking-tighter">Live</p>
-                   <p className="text-xs text-white/80 font-medium mt-6">Connected to {userProfile?.connected_ngos || 0} local shelters.</p>
+                <div className="bg-primary rounded-3xl md:rounded-[40px] p-8 md:p-10 text-white shadow-xl shadow-primary/20">
+                   <p className="text-[9px] md:text-[10px] font-black text-white/60 uppercase tracking-widest mb-4">NGO Network</p>
+                   <p className="text-4xl md:text-5xl font-black tracking-tighter">Live</p>
+                   <p className="text-[10px] md:text-xs text-white/80 font-medium mt-6">Connected to {userProfile?.connected_ngos || 0} local shelters.</p>
                 </div>
-                <Link to="/logistics" className="bg-gray-900 rounded-[40px] p-10 text-white shadow-xl group hover:scale-[1.02] transition-all">
+                <Link to="/logistics" className="bg-gray-900 rounded-3xl md:rounded-[40px] p-8 md:p-10 text-white shadow-xl group hover:scale-[1.02] transition-all sm:col-span-2 md:col-span-1">
                    <div className="flex justify-between items-start mb-4">
-                      <p className="text-[10px] font-black text-white/40 uppercase tracking-widest">Logistics Intelligence</p>
+                      <p className="text-[9px] md:text-[10px] font-black text-white/40 uppercase tracking-widest">Logistics Intelligence</p>
                       <span className="material-symbols-outlined text-primary group-hover:animate-pulse">route</span>
                    </div>
-                   <p className="text-4xl font-black tracking-tighter">Batching</p>
-                   <p className="text-xs text-white/60 font-medium mt-6 flex items-center gap-2">
+                   <p className="text-3xl md:text-4xl font-black tracking-tighter">Batching</p>
+                   <p className="text-[10px] md:text-xs text-white/60 font-medium mt-6 flex items-center gap-2">
                       <span className="w-1.5 h-1.5 bg-primary rounded-full"></span>
                       Optimization Active
                    </p>
                 </Link>
               </div>
 
-              <div className="bg-white rounded-[40px] border border-gray-100 p-10 shadow-sm">
-                 <h3 className="text-xl font-black text-gray-900 mb-8 tracking-tight">Active Listings</h3>
+              <div className="bg-white rounded-3xl md:rounded-[40px] border border-gray-100 p-8 md:p-10 shadow-sm">
+                 <h3 className="text-lg md:text-xl font-black text-gray-900 mb-8 tracking-tight">Active Listings</h3>
                  <div className="space-y-4">
                    {listings.filter(l => l.status === 'Live' && l.type === 'Cooked').length > 0 ? (
                      listings.filter(l => l.status === 'Live' && l.type === 'Cooked').map(l => (
@@ -394,7 +406,7 @@ const Dashboard = () => {
 
           {/* CONSUMER VIEW */}
           {role === 'Consumer' && (
-            <div className="bg-white rounded-[40px] border border-gray-200 overflow-hidden relative shadow-sm h-[600px] z-0">
+            <div className="bg-white rounded-3xl md:rounded-[40px] border border-gray-200 overflow-hidden relative shadow-sm h-[400px] md:h-[600px] z-0">
                <MapContainer center={userCoords} zoom={14} zoomControl={false} attributionControl={false} style={{ height: '100%', width: '100%' }}>
                  <TileLayer url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png" />
                  <Marker position={userCoords} icon={userLocationIcon}>
@@ -420,13 +432,13 @@ const Dashboard = () => {
                  ))}
                </MapContainer>
                
-               <div className="absolute bottom-10 left-10 right-10 z-[500]">
-                  <div className="bg-gray-900/90 backdrop-blur-xl rounded-[32px] p-10 flex flex-col md:flex-row justify-between items-center gap-8 border border-white/10 shadow-2xl">
-                     <div>
-                        <h3 className="text-2xl font-black text-white tracking-tight">Active Surplus Heatmap</h3>
-                        <p className="text-white/50 text-sm mt-1">High listing density detected in your current zone.</p>
+               <div className="absolute bottom-6 md:bottom-10 left-6 md:left-10 right-6 md:right-10 z-[500]">
+                  <div className="bg-gray-900/90 backdrop-blur-xl rounded-3xl md:rounded-[32px] p-6 md:p-10 flex flex-col md:flex-row justify-between items-center gap-6 md:gap-8 border border-white/10 shadow-2xl">
+                     <div className="text-center md:text-left">
+                        <h3 className="text-xl md:text-2xl font-black text-white tracking-tight">Active Surplus Heatmap</h3>
+                        <p className="text-white/50 text-xs md:text-sm mt-1">High listing density detected in your current zone.</p>
                      </div>
-                     <Link to="/discover" className="px-10 py-5 bg-primary text-white rounded-2xl font-black text-xs uppercase tracking-widest hover:scale-105 transition-all shadow-xl shadow-primary/20">Explore Marketplace</Link>
+                     <Link to="/discover" className="w-full md:w-auto text-center px-8 md:px-10 py-4 md:py-5 bg-primary text-white rounded-2xl font-black text-[10px] md:text-xs uppercase tracking-widest hover:scale-105 transition-all shadow-xl shadow-primary/20">Explore Marketplace</Link>
                   </div>
                </div>
             </div>
@@ -435,7 +447,7 @@ const Dashboard = () => {
 
         {/* SIDEBAR: Platform Pulse */}
         <div className="space-y-8">
-           <div className="bg-white rounded-[40px] border border-gray-100 p-10 shadow-sm min-h-[600px] flex flex-col">
+           <div className="bg-white rounded-3xl md:rounded-[40px] border border-gray-100 p-8 md:p-10 shadow-sm min-h-[400px] md:min-h-[600px] flex flex-col">
               <div className="flex items-center justify-between mb-10">
                 <h3 className="font-black text-gray-900 text-xs uppercase tracking-widest flex items-center gap-2">
                   Platform Pulse
@@ -511,54 +523,54 @@ const Dashboard = () => {
                 )}
               </div>
               
-              <button className="w-full py-5 mt-10 bg-gray-50 text-gray-900 border border-gray-100 rounded-[24px] font-black text-[10px] uppercase tracking-widest hover:bg-gray-100 transition-colors">Mark All Read</button>
+              <button className="w-full py-5 mt-10 bg-gray-50 text-gray-900 border border-gray-100 rounded-2xl md:rounded-[24px] font-black text-[10px] uppercase tracking-widest hover:bg-gray-100 transition-colors">Mark All Read</button>
            </div>
         </div>
       </div>
 
       {/* QUICK LIST MODAL */}
       {showQuickList && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-md z-[2000] flex items-center justify-center p-6 animate-[fade-in_0.3s_ease-out]">
-          <div className="bg-white rounded-[40px] w-full max-w-xl p-12 shadow-2xl relative">
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-md z-[2000] flex items-center justify-center p-4 animate-[fade-in_0.3s_ease-out]">
+          <div className="bg-white rounded-3xl md:rounded-[40px] w-full max-w-xl p-8 md:p-12 shadow-2xl relative max-h-[90vh] overflow-y-auto">
             <button 
               onClick={() => setShowQuickList(false)}
-              className="absolute top-10 right-10 text-gray-400 hover:text-gray-900"
+              className="absolute top-6 md:top-10 right-6 md:top-10 text-gray-400 hover:text-gray-900"
             >
-              <span className="material-symbols-outlined text-3xl">close</span>
+              <span className="material-symbols-outlined text-2xl md:text-3xl">close</span>
             </button>
-            <h2 className="text-3xl font-black text-gray-900 tracking-tight mb-2">Publish Surplus</h2>
-            <p className="text-gray-500 font-medium mb-10">Invisible orchestration will route to NGOs first.</p>
+            <h2 className="text-2xl md:text-3xl font-black text-gray-900 tracking-tight mb-2">Publish Surplus</h2>
+            <p className="text-gray-500 font-medium mb-8 md:mb-10 text-sm">Invisible orchestration will route to NGOs first.</p>
             
-            <form onSubmit={handleAddFood} className="space-y-8">
+            <form onSubmit={handleAddFood} className="space-y-6 md:space-y-8">
               <div className="space-y-2">
                 <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest px-4">Item Name</label>
-                <input name="foodName" required placeholder="e.g. Veg Biryani" className="w-full bg-gray-50 border border-gray-200 rounded-3xl p-6 font-black text-gray-900 focus:outline-none focus:ring-4 focus:ring-primary/5 focus:border-primary transition-all" />
+                <input name="foodName" required placeholder="e.g. Veg Biryani" className="w-full bg-gray-50 border border-gray-200 rounded-2xl md:rounded-3xl p-5 md:p-6 font-black text-gray-900 focus:outline-none focus:ring-4 focus:ring-primary/5 focus:border-primary transition-all" />
               </div>
-              <div className="grid grid-cols-2 gap-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
                 <div className="space-y-2">
                   <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest px-4">Quantity</label>
-                  <input name="quantity" required placeholder="e.g. 25 Plates" className="w-full bg-gray-50 border border-gray-200 rounded-3xl p-6 font-black text-gray-900 focus:outline-none focus:ring-4 focus:ring-primary/5 focus:border-primary transition-all" />
+                  <input name="quantity" required placeholder="e.g. 25 Plates" className="w-full bg-gray-50 border border-gray-200 rounded-2xl md:rounded-3xl p-5 md:p-6 font-black text-gray-900 focus:outline-none focus:ring-4 focus:ring-primary/5 focus:border-primary transition-all" />
                 </div>
                 <div className="space-y-2">
                   <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest px-4">Urgency</label>
-                  <select name="urgency" className="w-full bg-gray-50 border border-gray-200 rounded-3xl p-6 font-black text-gray-900 focus:outline-none focus:ring-4 focus:ring-primary/5 focus:border-primary transition-all appearance-none">
+                  <select name="urgency" className="w-full bg-gray-50 border border-gray-200 rounded-2xl md:rounded-3xl p-5 md:p-6 font-black text-gray-900 focus:outline-none focus:ring-4 focus:ring-primary/5 focus:border-primary transition-all appearance-none">
                     <option>High</option>
                     <option>Medium</option>
                     <option>Low</option>
                   </select>
                 </div>
               </div>
-              <div className="grid grid-cols-2 gap-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
                 <div className="space-y-2">
                   <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest px-4">Price (₹)</label>
-                  <input name="price" type="number" placeholder="e.g. 150" className="w-full bg-gray-50 border border-gray-200 rounded-3xl p-6 font-black text-gray-900 focus:outline-none focus:ring-4 focus:ring-primary/5 focus:border-primary transition-all" />
+                  <input name="price" type="number" placeholder="e.g. 150" className="w-full bg-gray-50 border border-gray-200 rounded-2xl md:rounded-3xl p-5 md:p-6 font-black text-gray-900 focus:outline-none focus:ring-4 focus:ring-primary/5 focus:border-primary transition-all" />
                 </div>
                 <div className="space-y-2">
                   <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest px-4">Weight (kg)</label>
-                  <input name="weight" type="number" step="0.1" required placeholder="e.g. 5.5" className="w-full bg-gray-50 border border-gray-200 rounded-3xl p-6 font-black text-gray-900 focus:outline-none focus:ring-4 focus:ring-primary/5 focus:border-primary transition-all" />
+                  <input name="weight" type="number" step="0.1" required placeholder="e.g. 5.5" className="w-full bg-gray-50 border border-gray-200 rounded-2xl md:rounded-3xl p-5 md:p-6 font-black text-gray-900 focus:outline-none focus:ring-4 focus:ring-primary/5 focus:border-primary transition-all" />
                 </div>
               </div>
-              <button type="submit" className="w-full py-6 bg-gray-900 text-white rounded-3xl font-black text-xs uppercase tracking-[0.2em] shadow-xl hover:scale-[1.02] active:scale-[0.98] transition-all">
+              <button type="submit" className="w-full py-5 md:py-6 bg-gray-900 text-white rounded-2xl md:rounded-3xl font-black text-[10px] md:text-xs uppercase tracking-[0.2em] shadow-xl hover:scale-[1.02] active:scale-[0.98] transition-all">
                  Confirm & Publish
               </button>
             </form>
@@ -567,41 +579,41 @@ const Dashboard = () => {
       )}
       {/* OPTIMIZE MODAL */}
       {optimizeItem && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-md z-[2000] flex items-center justify-center p-6 animate-[fade-in_0.3s_ease-out]">
-          <div className="bg-white rounded-[40px] w-full max-w-xl p-12 shadow-2xl relative">
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-md z-[2000] flex items-center justify-center p-4 animate-[fade-in_0.3s_ease-out]">
+          <div className="bg-white rounded-3xl md:rounded-[40px] w-full max-w-xl p-8 md:p-12 shadow-2xl relative max-h-[90vh] overflow-y-auto">
             <button 
               onClick={() => setOptimizeItem(null)}
-              className="absolute top-10 right-10 text-gray-400 hover:text-gray-900"
+              className="absolute top-6 md:top-10 right-6 md:top-10 text-gray-400 hover:text-gray-900"
             >
-              <span className="material-symbols-outlined text-3xl">close</span>
+              <span className="material-symbols-outlined text-2xl md:text-3xl">close</span>
             </button>
-            <h2 className="text-3xl font-black text-gray-900 tracking-tight mb-2">Optimize Inventory</h2>
-            <p className="text-gray-500 font-medium mb-10">Adjust stock levels or remove this item.</p>
+            <h2 className="text-2xl md:text-3xl font-black text-gray-900 tracking-tight mb-2">Optimize Inventory</h2>
+            <p className="text-gray-500 font-medium mb-8 md:mb-10 text-sm">Adjust stock levels or remove this item.</p>
             
-            <form onSubmit={handleOptimizeUpdate} className="space-y-8">
+            <form onSubmit={handleOptimizeUpdate} className="space-y-6 md:space-y-8">
               <div>
-                <label className="block text-[10px] font-black text-gray-900 uppercase tracking-[0.2em] mb-4">Current Stock</label>
+                <label className="block text-[10px] font-black text-gray-900 uppercase tracking-[0.2em] mb-4 px-4">Current Stock</label>
                 <input 
                   type="number" 
                   name="quantity"
                   required
                   defaultValue={optimizeItem.stock || optimizeItem.quantity}
                   min="0"
-                  className="w-full bg-gray-50 border-none rounded-2xl p-5 font-bold text-gray-900 focus:ring-2 focus:ring-primary/20"
+                  className="w-full bg-gray-50 border border-gray-200 rounded-2xl p-5 font-bold text-gray-900 focus:outline-none focus:ring-4 focus:ring-primary/5 focus:border-primary transition-all"
                 />
               </div>
 
-              <div className="flex gap-4 pt-4">
+              <div className="flex flex-col sm:flex-row gap-4 pt-4">
                 <button 
                   type="button"
                   onClick={handleOptimizeDelete}
-                  className="flex-1 py-5 bg-red-50 text-red-600 rounded-2xl font-black text-[10px] uppercase tracking-[0.2em] hover:bg-red-100 transition-colors"
+                  className="flex-1 py-5 bg-red-50 text-red-600 rounded-2xl font-black text-[10px] uppercase tracking-[0.2em] hover:bg-red-100 transition-colors order-2 sm:order-1"
                 >
                   Delete Item
                 </button>
                 <button 
                   type="submit" 
-                  className="flex-1 py-5 bg-gray-900 text-white rounded-2xl font-black text-[10px] uppercase tracking-[0.2em] hover:bg-primary transition-colors"
+                  className="flex-1 py-5 bg-gray-900 text-white rounded-2xl font-black text-[10px] uppercase tracking-[0.2em] hover:bg-primary transition-colors order-1 sm:order-2"
                 >
                   Save Changes
                 </button>

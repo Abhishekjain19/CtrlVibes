@@ -256,9 +256,9 @@ const Discover = () => {
       <motion.div 
         initial={{ opacity: 0, scale: 0.95, y: 20 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}
-        className="relative w-full max-w-2xl bg-white rounded-[40px] overflow-hidden shadow-2xl"
+        className="relative w-full max-w-2xl bg-white rounded-3xl md:rounded-[40px] overflow-hidden shadow-2xl max-h-[95vh] md:max-h-[90vh] flex flex-col md:flex-row"
       >
-        <div className="grid grid-cols-1 md:grid-cols-2">
+        <div className="grid grid-cols-1 md:grid-cols-2 w-full">
           <div className="aspect-square bg-gray-100 flex items-center justify-center relative">
              <span className="material-symbols-outlined text-9xl text-gray-200">
                {selectedItem.type === 'Cooked' ? 'restaurant' : 'inventory_2'}
@@ -267,13 +267,13 @@ const Discover = () => {
                 <p className="text-[10px] font-black text-primary uppercase tracking-[0.2em]">{selectedItem.type}</p>
              </div>
           </div>
-          <div className="p-8 flex flex-col max-h-[80vh] overflow-y-auto">
+          <div className="p-6 md:p-8 flex flex-col max-h-[50vh] md:max-h-[80vh] overflow-y-auto">
              <div className="flex justify-between items-start mb-6">
                 <div>
-                  <h2 className="text-3xl font-black text-gray-900 tracking-tight">{selectedItem.name}</h2>
+                  <h2 className="text-2xl md:text-3xl font-black text-gray-900 tracking-tight">{selectedItem.name}</h2>
                   <p className="text-gray-500 font-bold mt-1 italic">{selectedItem.profiles?.full_name}</p>
                 </div>
-                <button onClick={() => setSelectedItem(null)} className="text-gray-400 hover:text-gray-900">
+                <button onClick={() => setSelectedItem(null)} className="text-gray-400 hover:text-gray-900 p-2">
                   <span className="material-symbols-outlined">close</span>
                 </button>
              </div>
@@ -412,7 +412,7 @@ const Discover = () => {
              <div className="pt-5 mt-5 border-t border-gray-100 flex items-center justify-between gap-4 sticky bottom-0 bg-white">
                 <div className="shrink-0">
                    <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Price</p>
-                   <p className="text-2xl font-black text-primary tracking-tighter">
+                   <p className="text-xl md:text-2xl font-black text-primary tracking-tighter">
                      {selectedItem.price ? `₹${selectedItem.price}` : 'Free'}
                    </p>
                 </div>
@@ -421,7 +421,7 @@ const Discover = () => {
                     handleReserve(selectedItem);
                     setSelectedItem(null);
                   }}
-                  className="shrink-0 px-7 py-3.5 bg-gray-900 text-white rounded-[20px] font-black text-xs uppercase tracking-[0.15em] shadow-xl hover:bg-primary transition-all"
+                  className="shrink-0 px-5 md:px-7 py-3 md:py-3.5 bg-gray-900 text-white rounded-xl md:rounded-[20px] font-black text-[10px] md:text-xs uppercase tracking-[0.15em] shadow-xl hover:bg-primary transition-all"
                 >
                   Confirm Request
                 </button>
@@ -435,9 +435,9 @@ const Discover = () => {
   return (
     <div className="pt-24 px-6 max-w-7xl mx-auto pb-24 min-h-screen">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-10 gap-6">
-        <div>
-          <h1 className="text-3xl font-extrabold text-gray-900 tracking-tight">Marketplace</h1>
-          <p className="text-gray-500 mt-1">Discover high-fidelity food surplus available for immediate redistribution.</p>
+        <div className="w-full md:w-auto">
+          <h1 className="text-2xl md:text-3xl font-black text-gray-900 tracking-tight">Marketplace</h1>
+          <p className="text-gray-500 mt-1 text-sm md:text-base font-medium">Discover surplus available for immediate redistribution.</p>
         </div>
         
         <div className="flex items-center gap-3 overflow-x-auto pb-2 w-full md:w-auto no-scrollbar">
@@ -483,7 +483,7 @@ const Discover = () => {
                   </span>
                 </button>
               </div>
-              <div className="p-8 flex-1">
+              <div className="p-6 md:p-8 flex-1 flex flex-col">
                 <h3 className={`text-xl font-bold mb-1 transition-colors ${requests.includes(item.id) ? 'text-green-800' : 'text-gray-900 group-hover:text-primary'}`}>{item.name}</h3>
                 <p className="text-sm text-gray-500 mb-6 font-medium">{item.profiles?.full_name || 'Anonymous Vendor'}</p>
                 
@@ -532,10 +532,10 @@ const Discover = () => {
       {showVendorMap && vendorLocation && (
         <div className="fixed inset-0 z-[4000] flex items-center justify-center p-4">
           <div className="absolute inset-0 bg-black/80 backdrop-blur-md" onClick={() => setShowVendorMap(false)}></div>
-          <div className="relative w-full max-w-2xl bg-white rounded-[40px] overflow-hidden shadow-2xl" style={{height: '70vh'}}>
-            <div className="absolute top-5 left-5 z-[4001] bg-white px-4 py-2 rounded-2xl shadow-lg border border-gray-100 flex items-center gap-2">
+          <div className="relative w-full max-w-2xl bg-white rounded-3xl md:rounded-[40px] overflow-hidden shadow-2xl h-[80vh] md:h-[70vh]">
+            <div className="absolute top-5 left-5 z-[4001] bg-white px-3 md:px-4 py-2 rounded-xl md:rounded-2xl shadow-lg border border-gray-100 flex items-center gap-2">
               <span className="material-symbols-outlined text-primary text-sm">location_on</span>
-              <p className="text-[10px] font-black text-gray-900 uppercase tracking-widest">{vendorLocation.name}</p>
+              <p className="text-[9px] md:text-[10px] font-black text-gray-900 uppercase tracking-widest">{vendorLocation.name}</p>
             </div>
             <button
               onClick={() => setShowVendorMap(false)}
@@ -544,9 +544,9 @@ const Discover = () => {
               <span className="material-symbols-outlined text-sm">close</span>
             </button>
             {userLiveLocation && (
-              <div className="absolute bottom-5 left-5 z-[4001] bg-white px-4 py-2 rounded-2xl shadow-lg border border-gray-100 flex items-center gap-2">
+              <div className="absolute bottom-5 left-5 z-[4001] bg-white px-3 md:px-4 py-2 rounded-xl md:rounded-2xl shadow-lg border border-gray-100 flex items-center gap-2">
                 <div className="w-2 h-2 rounded-full bg-blue-500 animate-pulse"></div>
-                <p className="text-[10px] font-black text-gray-600 uppercase tracking-widest">Your Live Location</p>
+                <p className="text-[9px] md:text-[10px] font-black text-gray-600 uppercase tracking-widest">Your Live Location</p>
               </div>
             )}
             <MapContainer
@@ -555,91 +555,7 @@ const Discover = () => {
               style={{ width: '100%', height: '100%' }}
               zoomControl={false}
             >
-              <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
-              <Marker position={[vendorLocation.lat, vendorLocation.lng]}>
-                <Popup><b>{vendorLocation.name}</b><br/>Vendor Location</Popup>
-              </Marker>
-              <Circle center={[vendorLocation.lat, vendorLocation.lng]} radius={200} color="#22c55e" fillColor="#22c55e" fillOpacity={0.1} />
-              {userLiveLocation && (
-                <Marker position={[userLiveLocation.lat, userLiveLocation.lng]}>
-                  <Popup>Your live location</Popup>
-                </Marker>
-              )}
-            </MapContainer>
-          </div>
-        </div>
-      )}
-
-      {/* Vendor Location Map Modal */}
-      {showVendorMap && vendorLocation && (
-        <div className="fixed inset-0 z-[4000] flex items-center justify-center p-4">
-          <div className="absolute inset-0 bg-black/80 backdrop-blur-md" onClick={() => setShowVendorMap(false)}></div>
-          <div className="relative w-full max-w-2xl bg-white rounded-[40px] overflow-hidden shadow-2xl" style={{height: '70vh'}}>
-            <div className="absolute top-5 left-5 z-[4001] bg-white px-4 py-2 rounded-2xl shadow-lg border border-gray-100 flex items-center gap-2">
-              <span className="material-symbols-outlined text-primary text-sm">location_on</span>
-              <p className="text-[10px] font-black text-gray-900 uppercase tracking-widest">{vendorLocation.name}</p>
-            </div>
-            <button
-              onClick={() => setShowVendorMap(false)}
-              className="absolute top-5 right-5 z-[4001] w-10 h-10 bg-white rounded-full flex items-center justify-center shadow-lg border border-gray-100 text-gray-400 hover:text-gray-900"
-            >
-              <span className="material-symbols-outlined text-sm">close</span>
-            </button>
-            {userLiveLocation && (
-              <div className="absolute bottom-5 left-5 z-[4001] bg-white px-4 py-2 rounded-2xl shadow-lg border border-gray-100 flex items-center gap-2">
-                <div className="w-2 h-2 rounded-full bg-blue-500 animate-pulse"></div>
-                <p className="text-[10px] font-black text-gray-600 uppercase tracking-widest">Your Live Location</p>
-              </div>
-            )}
-            <MapContainer
-              center={[vendorLocation.lat, vendorLocation.lng]}
-              zoom={15}
-              style={{ width: '100%', height: '100%' }}
-              zoomControl={false}
-            >
-              <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
-              <Marker position={[vendorLocation.lat, vendorLocation.lng]}>
-                <Popup><b>{vendorLocation.name}</b><br/>Vendor Location</Popup>
-              </Marker>
-              <Circle center={[vendorLocation.lat, vendorLocation.lng]} radius={200} color="#22c55e" fillColor="#22c55e" fillOpacity={0.1} />
-              {userLiveLocation && (
-                <Marker position={[userLiveLocation.lat, userLiveLocation.lng]}>
-                  <Popup>Your live location</Popup>
-                </Marker>
-              )}
-            </MapContainer>
-          </div>
-        </div>
-      )}
-
-      {/* Vendor Location Map Modal */}
-      {showVendorMap && vendorLocation && (
-        <div className="fixed inset-0 z-[4000] flex items-center justify-center p-4">
-          <div className="absolute inset-0 bg-black/80 backdrop-blur-md" onClick={() => setShowVendorMap(false)}></div>
-          <div className="relative w-full max-w-2xl bg-white rounded-[40px] overflow-hidden shadow-2xl" style={{height: '70vh'}}>
-            <div className="absolute top-5 left-5 z-[4001] bg-white px-4 py-2 rounded-2xl shadow-lg border border-gray-100 flex items-center gap-2">
-              <span className="material-symbols-outlined text-primary text-sm">location_on</span>
-              <p className="text-[10px] font-black text-gray-900 uppercase tracking-widest">{vendorLocation.name}</p>
-            </div>
-            <button
-              onClick={() => setShowVendorMap(false)}
-              className="absolute top-5 right-5 z-[4001] w-10 h-10 bg-white rounded-full flex items-center justify-center shadow-lg border border-gray-100 text-gray-400 hover:text-gray-900"
-            >
-              <span className="material-symbols-outlined text-sm">close</span>
-            </button>
-            {userLiveLocation && (
-              <div className="absolute bottom-5 left-5 z-[4001] bg-white px-4 py-2 rounded-2xl shadow-lg border border-gray-100 flex items-center gap-2">
-                <div className="w-2 h-2 rounded-full bg-blue-500 animate-pulse"></div>
-                <p className="text-[10px] font-black text-gray-600 uppercase tracking-widest">Your Live Location</p>
-              </div>
-            )}
-            <MapContainer
-              center={[vendorLocation.lat, vendorLocation.lng]}
-              zoom={15}
-              style={{ width: '100%', height: '100%' }}
-              zoomControl={false}
-            >
-              <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
+              <TileLayer url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png" />
               <Marker position={[vendorLocation.lat, vendorLocation.lng]}>
                 <Popup><b>{vendorLocation.name}</b><br/>Vendor Location</Popup>
               </Marker>

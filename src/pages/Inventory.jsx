@@ -76,6 +76,7 @@ const Inventory = () => {
     
     try {
       const resp = await fetch(`/off-api/api/v0/product/${code}.json`);
+      if (!resp.ok) throw new Error('OFF API error');
       const data = await resp.json();
       if (data.status === 1) {
         const p = data.product;
@@ -542,37 +543,6 @@ If date is "Best before 6 months from mfg" and mfg is "01/24", calculate "2024-0
                 >
                   <div className="flex items-center gap-6">
                     <div className="w-16 h-16 bg-gray-50 rounded-2xl flex items-center justify-center text-gray-400 group-hover:bg-primary/5 group-hover:text-primary transition-colors">
-                      <span className="material-symbols-outlined text-3xl">package_2</span>
-                    </div>
-                    <div>
-                      <h4 className="text-lg font-bold text-gray-900">{item.listings?.title || item.listings?.name}</h4>
-                      <div className="flex items-center gap-3 mt-1">
-                        <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">{new Date(item.created_at).toLocaleDateString()}</span>
-                        <span className={`px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-widest ${
-                          item.status === 'Completed' ? 'bg-green-100 text-green-600' : 
-                          item.status === 'In Transit' ? 'bg-primary/10 text-primary animate-pulse' : 'bg-gray-50 text-gray-400'
-                        }`}>
-                          {item.status}
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-                  <div className="text-right">
-                    <p className="font-black text-gray-900 text-xl tracking-tighter">₹{item.bid_amount || item.listings?.price}</p>
-                    <p className="text-[9px] font-black text-primary uppercase tracking-widest mt-1">Selling Record</p>
-                  </div>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <div className="py-20 text-center bg-gray-50 rounded-[40px] border border-dashed border-gray-200">
-               <span className="material-symbols-outlined text-6xl text-gray-200 mb-4">history</span>
-               <p className="text-gray-400 font-bold uppercase text-[10px] tracking-widest">No redistribution history found</p>
-            </div>
-          )
-        ) : inventory.length > 0 ? (
-          inventory.map(item => {
-            const daysLeft = calculateDaysRemaining(item.expiry_date);
             const isCritical = daysLeft <= 2;
             return (
               <div key={item.id} className="bg-white rounded-3xl border border-gray-100 p-8 shadow-sm flex flex-col lg:flex-row items-center gap-8 group hover:shadow-xl transition-all duration-500">
@@ -617,11 +587,11 @@ If date is "Best before 6 months from mfg" and mfg is "01/24", calculate "2024-0
         {scanModal && (
           <div className="fixed inset-0 z-[4000] flex items-center justify-center p-4">
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setScanModal(false)} className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
-            <motion.div initial={{ y: 50, opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: 50, opacity: 0 }} className="bg-white rounded-[40px] w-full max-w-md p-8 relative shadow-2xl z-10 border border-gray-100">
+            <motion.div initial={{ y: 50, opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: 50, opacity: 0 }} className="bg-white rounded-3xl md:rounded-[40px] w-full max-w-lg p-6 md:p-8 relative shadow-2xl z-10 border border-gray-100 max-h-[90vh] overflow-y-auto">
               <div className="flex justify-between items-start mb-6">
                 <div>
                   <p className="text-[9px] font-black text-primary uppercase tracking-[0.2em] mb-1">AI Product Intelligence</p>
-                  <h3 className="text-2xl font-black text-gray-900 tracking-tight">Expiry Date Scanner</h3>
+                  <h3 className="text-xl md:text-2xl font-black text-gray-900 tracking-tight">Expiry Date Scanner</h3>
                 </div>
                 <button onClick={() => setScanModal(false)} className="w-10 h-10 bg-gray-50 rounded-full flex items-center justify-center text-gray-400 hover:text-gray-900 transition-colors">
                   <span className="material-symbols-outlined">close</span>
@@ -859,26 +829,26 @@ If date is "Best before 6 months from mfg" and mfg is "01/24", calculate "2024-0
         {showTxModal && selectedTx && (
           <div className="fixed inset-0 z-[3000] flex items-center justify-center p-4">
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setShowTxModal(false)} className="absolute inset-0 bg-black/60 backdrop-blur-md" />
-            <motion.div initial={{ y: 100, opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: 100, opacity: 0 }} className="bg-white rounded-[40px] w-full max-w-lg overflow-hidden relative shadow-2xl flex flex-col">
-              <div className="p-8 border-b border-gray-100 flex justify-between items-start">
+            <motion.div initial={{ y: 100, opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: 100, opacity: 0 }} className="bg-white rounded-3xl md:rounded-[40px] w-full max-w-lg overflow-hidden relative shadow-2xl flex flex-col max-h-[90vh]">
+              <div className="p-6 md:p-8 border-b border-gray-100 flex justify-between items-start shrink-0">
                 <div>
                   <span className={`px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest mb-2 inline-block ${selectedTx.status === 'Completed' ? 'bg-green-100 text-green-600' : 'bg-primary/10 text-primary'}`}>{selectedTx.status}</span>
-                  <h3 className="text-2xl font-black text-gray-900 tracking-tight">{selectedTx.listings?.title || selectedTx.listings?.name}</h3>
-                  <p className="text-gray-500 font-medium text-xs mt-1">Order #{selectedTx.id.slice(0,8).toUpperCase()}</p>
+                  <h3 className="text-xl md:text-2xl font-black text-gray-900 tracking-tight">{selectedTx.listings?.title || selectedTx.listings?.name}</h3>
+                  <p className="text-gray-500 font-medium text-[10px] md:text-xs mt-1">Order #{selectedTx.id.slice(0,8).toUpperCase()}</p>
                 </div>
                 <button onClick={() => setShowTxModal(false)} className="w-10 h-10 bg-gray-50 rounded-full flex items-center justify-center text-gray-400 hover:text-gray-900 transition-colors"><span className="material-symbols-outlined">close</span></button>
               </div>
-              <div className="h-64 relative bg-gray-100">
+              <div className="h-48 md:h-64 relative bg-gray-100 shrink-0">
                 <MapContainer center={[selectedTx.bid_location_lat || 12.9716, selectedTx.bid_location_lng || 77.5946]} zoom={15} zoomControl={false} style={{ height: '100%', width: '100%' }}>
                   <TileLayer url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png" />
                   <Marker position={[selectedTx.bid_location_lat || 12.9716, selectedTx.bid_location_lng || 77.5946]} icon={deliveryIcon} />
                 </MapContainer>
               </div>
-              <div className="p-8 space-y-8 text-center">
-                <div className="bg-gray-50 rounded-[32px] p-10 border border-gray-100">
-                  <p className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] mb-4">Handoff Verification Code</p>
-                  <p className="text-6xl font-black text-gray-900 tracking-widest mb-2 font-mono">{selectedTx.qr_secret}</p>
-                  <p className="text-[11px] text-gray-500 font-bold uppercase tracking-widest">Share this with the NGO partner upon arrival.</p>
+              <div className="p-6 md:p-8 space-y-8 text-center overflow-y-auto">
+                <div className="bg-gray-50 rounded-2xl md:rounded-[32px] p-6 md:p-10 border border-gray-100">
+                  <p className="text-[9px] md:text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] mb-4">Handoff Verification Code</p>
+                  <p className="text-4xl md:text-6xl font-black text-gray-900 tracking-widest mb-2 font-mono">{selectedTx.qr_secret}</p>
+                  <p className="text-[10px] md:text-[11px] text-gray-500 font-bold uppercase tracking-widest">Share this with the NGO partner upon arrival.</p>
                 </div>
               </div>
             </motion.div>

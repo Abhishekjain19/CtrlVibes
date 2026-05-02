@@ -129,8 +129,8 @@ const Orders = () => {
   const isSeller = profile?.role === 'Restaurant' || profile?.role === 'Product Seller';
 
   return (
-    <div className="pt-24 px-6 max-w-4xl mx-auto pb-24 min-h-screen">
-      <div className="mb-12 flex justify-between items-center">
+    <div className="pt-24 px-4 md:px-6 max-w-4xl mx-auto pb-24 min-h-screen">
+      <div className="mb-12 flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
         <div>
           <h1 className="text-3xl font-black text-gray-900 tracking-tight">{isSeller ? 'Selling History' : 'Purchase History'}</h1>
           <p className="text-gray-500 font-medium">Verified redistribution records and impact tracking.</p>
@@ -146,9 +146,9 @@ const Orders = () => {
             <div 
               key={item.id} 
               onClick={() => { setSelectedTx(item); setShowTxModal(true); setShowQRSecret(false); }}
-              className="bg-white rounded-[32px] border border-gray-100 p-8 flex items-center justify-between cursor-pointer hover:border-primary transition-all shadow-sm group"
+              className="bg-white rounded-3xl md:rounded-[32px] border border-gray-100 p-6 md:p-8 flex flex-col md:flex-row items-start md:items-center justify-between cursor-pointer hover:border-primary transition-all shadow-sm group gap-4 md:gap-0"
             >
-              <div className="flex items-center gap-6">
+              <div className="flex items-center gap-4 md:gap-6">
                 <div className="w-16 h-16 bg-gray-50 rounded-2xl flex items-center justify-center text-gray-400 group-hover:bg-primary/5 group-hover:text-primary transition-colors">
                   <span className="material-symbols-outlined text-3xl">package_2</span>
                 </div>
@@ -165,15 +165,15 @@ const Orders = () => {
                   </div>
                 </div>
               </div>
-              <div className="text-right">
-                <p className="font-black text-gray-900 text-xl tracking-tighter">₹{item.bid_amount || item.listings?.price}</p>
+              <div className="text-left md:text-right">
+                <p className="font-black text-gray-900 text-lg md:text-xl tracking-tighter">₹{item.bid_amount || item.listings?.price}</p>
                 <p className="text-[9px] font-black text-primary uppercase tracking-widest mt-1">{isSeller ? 'Redirected' : 'Acquired'}</p>
               </div>
             </div>
           ))}
         </div>
       ) : (
-        <div className="bg-gray-50 rounded-[40px] border border-dashed border-gray-200 p-20 text-center">
+        <div className="bg-gray-50 rounded-[40px] border border-dashed border-gray-200 p-12 md:p-20 text-center">
            <span className="material-symbols-outlined text-6xl text-gray-200 mb-4">history</span>
            <p className="text-gray-500 font-medium italic">No redistribution records found yet.</p>
         </div>
@@ -188,18 +188,18 @@ const Orders = () => {
               initial={{ y: 100, opacity: 0 }} 
               animate={{ y: 0, opacity: 1 }} 
               exit={{ y: 100, opacity: 0 }}
-              className="bg-white rounded-[40px] w-full max-w-lg overflow-hidden relative shadow-2xl flex flex-col max-h-[90vh] overflow-y-auto"
+              className="bg-white rounded-3xl md:rounded-[40px] w-full max-w-lg overflow-hidden relative shadow-2xl flex flex-col max-h-[95vh] md:max-h-[90vh] overflow-y-auto"
             >
               {/* Header */}
-              <div className="p-8 border-b border-gray-100 flex justify-between items-start">
+              <div className="p-6 md:p-8 border-b border-gray-100 flex justify-between items-start">
                 <div>
                   <span className={`px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest mb-2 inline-block ${
                     selectedTx.status === 'Completed' ? 'bg-green-100 text-green-600' : 'bg-primary/10 text-primary'
                   }`}>
                     {selectedTx.status}
                   </span>
-                  <h3 className="text-2xl font-black text-gray-900 tracking-tight">{selectedTx.listings?.name}</h3>
-                  <p className="text-gray-500 font-medium text-xs mt-1">Transaction Ref: {selectedTx.id.slice(0,8).toUpperCase()}</p>
+                  <h3 className="text-xl md:text-2xl font-black text-gray-900 tracking-tight">{selectedTx.listings?.name}</h3>
+                  <p className="text-gray-500 font-medium text-[10px] md:text-xs mt-1">Transaction Ref: {selectedTx.id.slice(0,8).toUpperCase()}</p>
                 </div>
                 <button onClick={() => setShowTxModal(false)} className="w-10 h-10 bg-gray-50 rounded-full flex items-center justify-center text-gray-400 hover:text-gray-900 transition-colors">
                   <span className="material-symbols-outlined">close</span>
@@ -208,7 +208,7 @@ const Orders = () => {
 
               {/* Logistics View Logic */}
               {selectedTx.fulfillment_type === 'Self-Pickup' ? (
-                <div className="h-64 bg-gray-900 flex flex-col items-center justify-center text-center p-8 relative overflow-hidden">
+                <div className="h-48 md:h-64 bg-gray-900 flex flex-col items-center justify-center text-center p-6 md:p-8 relative overflow-hidden">
                    <div className="absolute inset-0 opacity-20">
                       <MapContainer center={[selectedTx.listings?.profiles?.location_lat || 12.9716, selectedTx.listings?.profiles?.location_lng || 77.5946]} zoom={13} zoomControl={false} style={{ height: '100%', width: '100%' }}>
                         <TileLayer url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png" />
@@ -232,7 +232,7 @@ const Orders = () => {
                    </div>
                 </div>
               ) : (selectedTx.status === 'In Transit' || selectedTx.status === 'Accepted') ? (
-                <div className="h-64 relative bg-gray-100">
+                <div className="h-48 md:h-64 relative bg-gray-100">
                   <MapContainer center={[selectedTx.bid_location_lat || 12.9716, selectedTx.bid_location_lng || 77.5946]} zoom={15} zoomControl={false} style={{ height: '100%', width: '100%' }}>
                     <TileLayer url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png" />
                     <Marker position={[selectedTx.bid_location_lat || 12.9716, selectedTx.bid_location_lng || 77.5946]} icon={deliveryIcon} />
@@ -255,11 +255,11 @@ const Orders = () => {
               ) : null}
 
               {/* Product Details Section */}
-              <div className="p-8 space-y-6">
-                <div className="grid grid-cols-2 gap-8">
+              <div className="p-6 md:p-8 space-y-6">
+                <div className="grid grid-cols-2 gap-4 md:gap-8">
                   <div className="space-y-1">
                     <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest">Fulfillment</p>
-                    <p className="text-lg font-black text-gray-900 tracking-tighter flex items-center gap-2">
+                    <p className="text-base md:text-lg font-black text-gray-900 tracking-tighter flex items-center gap-2">
                       <span className="material-symbols-outlined text-primary text-sm">
                         {selectedTx.fulfillment_type === 'Self-Pickup' ? 'person_pin_circle' : 'local_shipping'}
                       </span>
@@ -268,7 +268,7 @@ const Orders = () => {
                   </div>
                   <div className="space-y-1">
                     <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest">Market Value</p>
-                    <p className="text-lg font-black text-gray-900 tracking-tighter">₹{selectedTx.bid_amount || selectedTx.listings?.price}</p>
+                    <p className="text-base md:text-lg font-black text-gray-900 tracking-tighter">₹{selectedTx.bid_amount || selectedTx.listings?.price}</p>
                   </div>
                 </div>
 

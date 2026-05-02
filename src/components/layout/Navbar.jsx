@@ -8,14 +8,15 @@ const Navbar = () => {
 
   return (
     <>
-      {/* Desktop Top Navbar */}
-      <nav className="fixed top-0 left-0 w-full h-20 bg-white/90 backdrop-blur-md border-b border-gray-200 z-[1000] hidden md:flex items-center justify-between px-10">
+      {/* Top Navbar: Mobile and Desktop */}
+      <nav className={`fixed top-0 left-0 w-full h-16 md:h-20 bg-white/90 backdrop-blur-md border-b border-gray-100 z-[1000] flex items-center justify-between px-6 md:px-10 ${!isPublicPage ? 'md:flex' : 'flex'}`}>
         <Link to="/" className="flex items-center gap-2">
-          <span className="material-symbols-outlined text-primary text-3xl" style={{fontVariationSettings: "'FILL' 1"}}>eco</span>
-          <span className="font-extrabold text-2xl text-gray-900 tracking-tighter uppercase">Zerra</span>
+          <span className="material-symbols-outlined text-primary text-2xl md:text-3xl" style={{fontVariationSettings: "'FILL' 1"}}>eco</span>
+          <span className="font-black text-xl md:text-2xl text-gray-900 tracking-tighter uppercase">Zerra</span>
         </Link>
         
-        <div className="flex items-center gap-8">
+        {/* Desktop Links */}
+        <div className="hidden md:flex items-center gap-8">
           {!isPublicPage ? (
             <>
               <Link to="/dashboard" className={`text-sm font-bold transition-colors ${isActive('/dashboard') ? 'text-primary' : 'text-gray-500 hover:text-gray-900'}`}>Dashboard</Link>
@@ -33,29 +34,36 @@ const Navbar = () => {
             </Link>
           )}
         </div>
+
+        {/* Mobile Login Button (Only on Public Pages) */}
+        {isPublicPage && (
+          <Link to="/auth?mode=login" className="flex md:hidden px-4 py-1.5 bg-primary text-white rounded-full font-black text-[10px] uppercase tracking-widest shadow-lg">
+            Login
+          </Link>
+        )}
       </nav>
 
       {/* Mobile Bottom Navbar (Only shown if NOT on public page) */}
       {!isPublicPage && (
-        <nav className="fixed bottom-0 left-0 w-full h-20 bg-white border-t border-gray-200 z-[1000] flex md:hidden items-center justify-around px-4 pb-2">
+        <nav className="fixed bottom-0 left-0 w-full h-20 bg-white border-t border-gray-100 z-[1000] flex md:hidden items-center justify-around px-4 pb-2 shadow-[0_-4px_20px_rgba(0,0,0,0.03)]">
           <Link to="/dashboard" className={`flex flex-col items-center gap-1 transition-colors ${isActive('/dashboard') ? 'text-primary' : 'text-gray-400'}`}>
             <span className="material-symbols-outlined text-2xl" style={{fontVariationSettings: isActive('/dashboard') ? "'FILL' 1" : ""}}>dashboard</span>
-            <span className="text-[10px] font-bold uppercase tracking-wider">Home</span>
+            <span className="text-[9px] font-black uppercase tracking-wider">Home</span>
           </Link>
           <Link to="/discover" className={`flex flex-col items-center gap-1 transition-colors ${isActive('/discover') ? 'text-primary' : 'text-gray-400'}`}>
             <span className="material-symbols-outlined text-2xl" style={{fontVariationSettings: isActive('/discover') ? "'FILL' 1" : ""}}>explore</span>
-            <span className="text-[10px] font-bold uppercase tracking-wider">Browse</span>
+            <span className="text-[9px] font-black uppercase tracking-wider">Browse</span>
           </Link>
-          <Link to="/inventory" className="relative -top-8 w-16 h-16 bg-primary text-white rounded-full flex items-center justify-center shadow-lg shadow-primary/30 border-4 border-gray-50">
+          <Link to="/inventory" className="relative -top-8 w-14 h-14 bg-primary text-white rounded-full flex items-center justify-center shadow-xl shadow-primary/30 border-4 border-white">
             <span className="material-symbols-outlined text-3xl">add</span>
           </Link>
           <Link to="/impact" className={`flex flex-col items-center gap-1 transition-colors ${isActive('/impact') ? 'text-primary' : 'text-gray-400'}`}>
             <span className="material-symbols-outlined text-2xl" style={{fontVariationSettings: isActive('/impact') ? "'FILL' 1" : ""}}>monitoring</span>
-            <span className="text-[10px] font-bold uppercase tracking-wider">Impact</span>
+            <span className="text-[9px] font-black uppercase tracking-wider">Impact</span>
           </Link>
           <Link to="/profile" className={`flex flex-col items-center gap-1 transition-colors ${isActive('/profile') ? 'text-primary' : 'text-gray-400'}`}>
             <span className="material-symbols-outlined text-2xl" style={{fontVariationSettings: isActive('/profile') ? "'FILL' 1" : ""}}>person</span>
-            <span className="text-[10px] font-bold uppercase tracking-wider">Profile</span>
+            <span className="text-[9px] font-black uppercase tracking-wider">Profile</span>
           </Link>
         </nav>
       )}

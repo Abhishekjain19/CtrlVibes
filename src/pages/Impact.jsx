@@ -5,6 +5,7 @@ import {
 } from 'recharts';
 import { supabase } from '../supabaseClient';
 import StatusOverlay from '../components/StatusOverlay';
+import ComplaintFlow from '../components/ComplaintFlow';
 
 const Impact = () => {
   const [activeTab, setActiveTab] = useState('analytics');
@@ -111,88 +112,88 @@ const Impact = () => {
   };
 
   const renderAnalytics = () => (
-    <div className="space-y-6 bg-[#F3F2F1] p-8 rounded-xl min-h-[700px]">
+    <div className="space-y-6 bg-white/50 p-5 md:p-8 rounded-3xl md:rounded-[40px] border border-gray-100 min-h-auto md:min-h-[700px] shadow-sm">
       {/* KPI Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {Object.entries(metricConfig).map(([key, config]) => (
           <button 
             key={key} 
             onClick={() => setSelectedMetric(key)}
-            className={`bg-white p-6 shadow-sm border-b-4 transition-all text-left group ${selectedMetric === key ? 'shadow-md scale-[1.02]' : 'hover:shadow-md'}`} 
-            style={{ borderColor: config.color }}
+            className={`bg-white p-6 md:p-8 rounded-2xl md:rounded-[32px] border-2 transition-all text-left group ${selectedMetric === key ? 'border-primary shadow-xl scale-[1.02]' : 'border-gray-50 hover:border-gray-200 hover:shadow-md'}`} 
           >
             <div className="flex justify-between items-start">
               <div>
-                <p className={`text-[10px] font-bold uppercase tracking-wider mb-1 ${selectedMetric === key ? 'text-gray-900' : 'text-gray-400'}`}>{config.label}</p>
-                <p className="text-3xl font-bold text-gray-900">
+                <p className={`text-[10px] font-black uppercase tracking-[0.2em] mb-2 ${selectedMetric === key ? 'text-primary' : 'text-gray-400'}`}>{config.label}</p>
+                <p className="text-xl md:text-3xl font-black text-gray-900 tracking-tight">
                   {key === 'moneySaved' ? `₹${(config.display/1000).toFixed(1)}k` : `${config.display}${config.unit}`}
                 </p>
               </div>
-              <span className={`material-symbols-outlined transition-colors ${selectedMetric === key ? '' : 'text-gray-200'}`} style={{ color: selectedMetric === key ? config.color : '' }}>{config.icon}</span>
+              <span className={`material-symbols-outlined transition-colors text-2xl md:text-3xl ${selectedMetric === key ? 'text-primary' : 'text-gray-200'}`}>{config.icon}</span>
             </div>
           </button>
         ))}
       </div>
 
       {/* Dynamic Main Chart Area */}
-      <div className="bg-white p-8 shadow-sm min-h-[500px] flex flex-col transition-all duration-500">
+      <div className="bg-white p-6 md:p-10 rounded-3xl md:rounded-[40px] border border-gray-100 min-h-[400px] md:min-h-[500px] flex flex-col transition-all duration-500 shadow-sm">
         {!selectedMetric ? (
-          <div className="flex-1 flex flex-col items-center justify-center text-center space-y-4 opacity-50">
-            <div className="w-20 h-20 bg-gray-50 rounded-full flex items-center justify-center">
-              <span className="material-symbols-outlined text-4xl text-gray-300">analytics</span>
+          <div className="flex-1 flex flex-col items-center justify-center text-center space-y-4 opacity-50 py-10">
+            <div className="w-16 h-16 md:w-20 md:h-20 bg-gray-50 rounded-full flex items-center justify-center">
+              <span className="material-symbols-outlined text-3xl md:text-4xl text-gray-300">analytics</span>
             </div>
             <div>
-              <p className="text-sm font-bold text-gray-800 uppercase tracking-widest">No Metric Selected</p>
-              <p className="text-xs text-gray-400 font-medium mt-1 italic">Select a performance indicator above to generate report</p>
+              <p className="text-[10px] md:text-sm font-black text-gray-800 uppercase tracking-widest">No Metric Selected</p>
+              <p className="text-[9px] md:text-xs text-gray-400 font-medium mt-1 italic">Select a performance indicator above</p>
             </div>
           </div>
         ) : (
           <>
-            <div className="border-b border-gray-100 pb-4 mb-8 flex justify-between items-center animate-in fade-in slide-in-from-top-4 duration-700">
+            <div className="border-b border-gray-50 pb-6 mb-6 md:mb-10 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 animate-in fade-in slide-in-from-top-4 duration-700">
               <div>
-                <h2 className="text-lg font-bold text-gray-800">{metricConfig[selectedMetric].label} Analysis</h2>
-                <p className="text-[10px] text-gray-400 font-bold uppercase mt-1 tracking-widest">Temporal Growth Report</p>
+                <h2 className="text-xl md:text-2xl font-black text-gray-900 tracking-tight">{metricConfig[selectedMetric].label} Analysis</h2>
+                <p className="text-[9px] md:text-[10px] text-gray-400 font-black uppercase mt-1 tracking-[0.2em]">Temporal Growth Report</p>
               </div>
-              <div className="flex items-center gap-2">
-                <div className="w-3 h-3" style={{ backgroundColor: metricConfig[selectedMetric].color }}></div>
-                <span className="text-[10px] font-bold text-gray-400 uppercase">{metricConfig[selectedMetric].label} ({metricConfig[selectedMetric].unit || 'qty'})</span>
+              <div className="flex items-center gap-3 bg-gray-50 px-3 py-1.5 rounded-full">
+                <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: metricConfig[selectedMetric].color }}></div>
+                <span className="text-[9px] md:text-[10px] font-black text-gray-500 uppercase tracking-widest">{metricConfig[selectedMetric].label}</span>
               </div>
             </div>
-            <div className="h-[400px] animate-in fade-in zoom-in-95 duration-1000">
-              <ResponsiveContainer width="100%" height="100%">
+            <div className="h-[300px] md:h-[400px] w-full animate-in fade-in zoom-in-95 duration-1000">
+              <ResponsiveContainer width="100%" height="100%" minHeight={400}>
                 {(selectedMetric === 'orders' || selectedMetric === 'weightRedirected') ? (
                   <AreaChart data={monthlyData} margin={{ top: 20, right: 30, left: 0, bottom: 0 }}>
-                    <CartesianGrid strokeDasharray="0" vertical={false} stroke="#EEEEEE" />
-                    <XAxis dataKey="month" axisLine={false} tickLine={false} tick={{fill: '#666', fontSize: 11}} dy={10} />
-                    <YAxis axisLine={false} tickLine={false} tick={{fill: '#666', fontSize: 11}} />
-                    <Tooltip content={<CustomTooltip />} />
+                    <CartesianGrid strokeDasharray="0" vertical={false} stroke="#F5F5F5" />
+                    <XAxis dataKey="month" axisLine={false} tickLine={false} tick={{fill: '#999', fontSize: 10, fontWeight: 900}} dy={10} />
+                    <YAxis axisLine={false} tickLine={false} tick={{fill: '#999', fontSize: 10, fontWeight: 900}} />
+                    <Tooltip content={<CustomTooltip />} cursor={{stroke: '#EEE', strokeWidth: 2}} />
                     <Area 
                       type="monotone" 
                       dataKey={selectedMetric} 
                       name={metricConfig[selectedMetric].label}
                       stroke={metricConfig[selectedMetric].color} 
-                      strokeWidth={2} 
+                      strokeWidth={4} 
                       fill={metricConfig[selectedMetric].color} 
-                      fillOpacity={0.1} 
+                      fillOpacity={0.05} 
                     >
-                      <LabelList dataKey={selectedMetric} position="top" style={{ fontSize: '10px', fontWeight: 'bold', fill: metricConfig[selectedMetric].color }} />
+                      <LabelList dataKey={selectedMetric} position="top" style={{ fontSize: '10px', fontWeight: '900', fill: metricConfig[selectedMetric].color }} />
                     </Area>
                   </AreaChart>
                 ) : (
                   <BarChart data={monthlyData} margin={{ top: 20 }}>
-                    <CartesianGrid strokeDasharray="0" vertical={false} stroke="#EEEEEE" />
-                    <XAxis dataKey="month" axisLine={false} tickLine={false} tick={{fill: '#666', fontSize: 11}} />
-                    <YAxis axisLine={false} tickLine={false} tick={{fill: '#666', fontSize: 11}} />
-                    <Tooltip content={<CustomTooltip />} />
+                    <CartesianGrid strokeDasharray="0" vertical={false} stroke="#F5F5F5" />
+                    <XAxis dataKey="month" axisLine={false} tickLine={false} tick={{fill: '#999', fontSize: 10, fontWeight: 900}} />
+                    <YAxis axisLine={false} tickLine={false} tick={{fill: '#999', fontSize: 10, fontWeight: 900}} />
+                    <Tooltip content={<CustomTooltip />} cursor={{fill: '#F9F9F9'}} />
                     <Bar 
                       dataKey={metricConfig[selectedMetric].key} 
                       name={metricConfig[selectedMetric].label} 
                       fill={metricConfig[selectedMetric].color}
+                      radius={[8, 8, 0, 0]}
                     >
                       <LabelList 
                         dataKey={metricConfig[selectedMetric].key} 
                         position="top" 
-                        style={{ fontSize: '10px', fontWeight: 'bold', fill: '#666' }} 
+                        style={{ fontSize: '10px', fontWeight: '900', fill: '#999' }} 
                         formatter={(val) => selectedMetric === 'moneySaved' ? `₹${(val/1000).toFixed(0)}k` : val}
                       />
                     </Bar>
@@ -207,42 +208,26 @@ const Impact = () => {
   );
 
   return (
-    <div className="pt-24 px-6 max-w-7xl mx-auto pb-24 min-h-screen bg-[#F3F2F1]">
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-6">
+    <div className="pt-24 px-4 md:px-6 max-w-7xl mx-auto pb-24 min-h-screen bg-[#F3F2F1]">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 md:mb-10 gap-6">
         <div>
-          <h1 className="text-2xl font-bold text-gray-800">Impact Analysis Report</h1>
-          <p className="text-sm text-gray-500">Zerra Corporate Redistribution Metrics</p>
+          <h1 className="text-2xl md:text-3xl font-black text-gray-900 tracking-tight">{activeTab === 'analytics' ? 'Impact Intelligence' : 'Consumer Integrity'}</h1>
+          <p className="text-gray-500 mt-1 font-medium text-sm md:text-base">{activeTab === 'analytics' ? 'Corporate redistribution metrics and growth analysis.' : 'Official report filing and case management.'}</p>
         </div>
-        <div className="flex bg-white p-1 shadow-sm border border-gray-200">
-          <button onClick={() => setActiveTab('analytics')} className={`px-6 py-2 text-xs font-bold transition-all ${activeTab === 'analytics' ? 'bg-[#118DFF] text-white' : 'text-gray-500 hover:bg-gray-50'}`}>DASHBOARD</button>
-          <button onClick={() => setActiveTab('complaint')} className={`px-6 py-2 text-xs font-bold transition-all ${activeTab === 'complaint' ? 'bg-[#118DFF] text-white' : 'text-gray-500 hover:bg-gray-50'}`}>SUPPORT</button>
+        <div className="flex bg-white p-1 rounded-xl border border-gray-200 shadow-sm w-full md:w-auto">
+          <button onClick={() => setActiveTab('analytics')} className={`flex-1 md:flex-none px-6 py-2 text-[10px] font-black rounded-lg transition-all uppercase tracking-widest ${activeTab === 'analytics' ? 'bg-primary text-white shadow-lg' : 'text-gray-400 hover:text-gray-900'}`}>Dashboard</button>
+          <button onClick={() => setActiveTab('complaint')} className={`flex-1 md:flex-none px-6 py-2 text-[10px] font-black rounded-lg transition-all uppercase tracking-widest ${activeTab === 'complaint' ? 'bg-primary text-white shadow-lg' : 'text-gray-400 hover:text-gray-900'}`}>Complaints</button>
         </div>
       </div>
 
       {activeTab === 'analytics' ? renderAnalytics() : (
-        <div className="max-w-2xl bg-white shadow-sm p-10 border-t-4 border-[#118DFF]">
-          <h2 className="text-xl font-bold text-gray-800 mb-1">Impact Support Hub</h2>
-          <p className="text-sm text-gray-500 mb-8">Report discrepancies or request deeper data exports.</p>
-          <form className="space-y-6" onSubmit={(e) => {
-            e.preventDefault();
-            setStatus({ type: 'success', message: 'Case submitted to the Data Integrity Team.' });
-          }}>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div>
-                <label className="block text-[10px] font-bold text-gray-500 mb-1 uppercase tracking-wider">Request Category</label>
-                <select className="w-full bg-gray-50 border border-gray-200 px-4 py-2 text-sm focus:border-[#118DFF] outline-none font-bold">
-                  <option>Data Correction</option>
-                  <option>Custom Export</option>
-                  <option>Certification</option>
-                </select>
-              </div>
-            </div>
-            <div>
-              <label className="block text-[10px] font-bold text-gray-500 mb-1 uppercase tracking-wider">Detailed Description</label>
-              <textarea rows="4" className="w-full bg-gray-50 border border-gray-200 px-4 py-2 text-sm focus:border-[#118DFF] outline-none font-medium resize-none" placeholder="Provide context..."></textarea>
-            </div>
-            <button type="submit" className="px-10 py-3 bg-[#118DFF] text-white font-bold text-xs uppercase tracking-widest hover:bg-[#0078D4] transition-all">Submit Case</button>
-          </form>
+        <div className="animate-in fade-in slide-in-from-bottom-6 duration-700">
+           <div className="mb-10 text-center max-w-xl mx-auto">
+              <h2 className="text-2xl md:text-3xl font-black text-gray-900 tracking-tight mb-3">Integrity Protection</h2>
+              <p className="text-gray-500 font-medium leading-relaxed italic text-sm md:text-base">"Trust is our most valuable currency."</p>
+              <p className="text-gray-400 text-[10px] md:text-xs mt-4 font-medium px-4">Use this interface to report discrepancies in received items. Every report is linked to your identity and order for accountability.</p>
+           </div>
+           <ComplaintFlow onComplete={setStatus} />
         </div>
       )}
       <StatusOverlay status={status} onClose={() => setStatus(null)} />

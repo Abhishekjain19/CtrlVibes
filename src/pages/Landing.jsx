@@ -36,13 +36,13 @@ const Landing = () => {
             </div>
             
             <div className="space-y-1">
-              <h1 className="text-5xl md:text-7xl font-black text-gray-900 tracking-tighter leading-none">
+              <h1 className="text-4xl sm:text-5xl md:text-7xl font-black text-gray-900 tracking-tighter leading-none">
                 Rescuing Surplus.
               </h1>
-              <h1 className="text-5xl md:text-7xl font-black text-gray-400 tracking-tighter leading-none">
+              <h1 className="text-4xl sm:text-5xl md:text-7xl font-black text-gray-400 tracking-tighter leading-none">
                 Empowering
               </h1>
-              <h1 className="text-6xl md:text-8xl font-black text-primary tracking-tighter leading-none">
+              <h1 className="text-5xl sm:text-6xl md:text-8xl font-black text-primary tracking-tighter leading-none">
                 Communities.
               </h1>
             </div>
@@ -96,43 +96,43 @@ const Landing = () => {
 
       {/* Ecosystem Architecture */}
       <section className="max-w-7xl mx-auto px-6">
-        <div className="text-center mb-20">
+        <div className="text-center mb-16 md:mb-20">
           <span className="text-primary text-[10px] font-black uppercase tracking-widest mb-4 inline-block">The Foundation</span>
-          <h2 className="text-5xl font-black text-gray-900 mb-6 tracking-tighter">Ecosystem Architecture</h2>
-          <p className="text-gray-500 text-xl max-w-2xl mx-auto font-medium">A multi-layered distribution engine designed for institutional efficiency and community impact.</p>
+          <h2 className="text-4xl md:text-5xl font-black text-gray-900 mb-6 tracking-tighter">Ecosystem Architecture</h2>
+          <p className="text-gray-500 text-lg md:text-xl max-w-2xl mx-auto font-medium">A multi-layered distribution engine designed for institutional efficiency and community impact.</p>
         </div>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-12">
-          <div className="bg-white rounded-[32px] border border-gray-100 shadow-sm p-12 flex flex-col items-center text-center group hover:shadow-xl hover:shadow-primary/5 transition-all duration-500">
-            <div className="w-20 h-20 bg-primary/5 rounded-3xl flex items-center justify-center mb-10 group-hover:scale-110 transition-transform">
-              <span className="material-symbols-outlined text-4xl text-primary" style={{ fontVariationSettings: "'FILL' 1" }}>recycling</span>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 md:gap-12">
+          <div className="bg-white rounded-3xl md:rounded-[32px] border border-gray-100 shadow-sm p-10 md:p-12 flex flex-col items-center text-center group hover:shadow-xl hover:shadow-primary/5 transition-all duration-500">
+            <div className="w-16 h-16 md:w-20 md:h-20 bg-primary/5 rounded-2xl md:rounded-3xl flex items-center justify-center mb-8 md:mb-10 group-hover:scale-110 transition-transform">
+              <span className="material-symbols-outlined text-3xl md:text-4xl text-primary" style={{ fontVariationSettings: "'FILL' 1" }}>recycling</span>
             </div>
-            <h3 className="text-2xl font-bold text-gray-900 mb-4">Loss Mitigation</h3>
-            <p className="text-gray-500 leading-relaxed font-medium">Advanced logistical protocols to ensure surplus items are recovered before expiration.</p>
+            <h3 className="text-xl md:text-2xl font-bold text-gray-900 mb-4">Loss Mitigation</h3>
+            <p className="text-gray-500 leading-relaxed font-medium text-sm md:text-base">Advanced logistical protocols to ensure surplus items are recovered before expiration.</p>
           </div>
-          <div className="bg-white rounded-[32px] border border-gray-100 shadow-sm p-12 flex flex-col items-center text-center group hover:shadow-xl hover:shadow-secondary/5 transition-all duration-500">
-            <div className="w-20 h-20 bg-secondary/5 rounded-3xl flex items-center justify-center mb-10 group-hover:scale-110 transition-transform">
-              <span className="material-symbols-outlined text-4xl text-secondary" style={{ fontVariationSettings: "'FILL' 1" }}>handshake</span>
+          <div className="bg-white rounded-3xl md:rounded-[32px] border border-gray-100 shadow-sm p-10 md:p-12 flex flex-col items-center text-center group hover:shadow-xl hover:shadow-secondary/5 transition-all duration-500">
+            <div className="w-16 h-16 md:w-20 md:h-20 bg-secondary/5 rounded-2xl md:rounded-3xl flex items-center justify-center mb-8 md:mb-10 group-hover:scale-110 transition-transform">
+              <span className="material-symbols-outlined text-3xl md:text-4xl text-secondary" style={{ fontVariationSettings: "'FILL' 1" }}>handshake</span>
             </div>
-            <h3 className="text-2xl font-bold text-gray-900 mb-4">Strategic Partners</h3>
-            <p className="text-gray-500 leading-relaxed font-medium">A refined network connecting premium purveyors with certified community partners.</p>
+            <h3 className="text-xl md:text-2xl font-bold text-gray-900 mb-4">Strategic Partners</h3>
+            <p className="text-gray-500 leading-relaxed font-medium text-sm md:text-base">A refined network connecting premium purveyors with certified community partners.</p>
           </div>
-          <div className="bg-white rounded-[32px] border border-gray-100 shadow-sm p-12 flex flex-col items-center text-center group hover:shadow-xl hover:shadow-blue-500/5 transition-all duration-500">
-            <div className="w-20 h-20 bg-blue-500/5 rounded-3xl flex items-center justify-center mb-10 group-hover:scale-110 transition-transform">
-              <span className="material-symbols-outlined text-4xl text-blue-600" style={{ fontVariationSettings: "'FILL' 1" }}>route</span>
+          <div className="bg-white rounded-3xl md:rounded-[32px] border border-gray-100 shadow-sm p-10 md:p-12 flex flex-col items-center text-center group hover:shadow-xl hover:shadow-blue-500/5 transition-all duration-500">
+            <div className="w-16 h-16 md:w-20 md:h-20 bg-blue-500/5 rounded-2xl md:rounded-3xl flex items-center justify-center mb-8 md:mb-10 group-hover:scale-110 transition-transform">
+              <span className="material-symbols-outlined text-3xl md:text-4xl text-blue-600" style={{ fontVariationSettings: "'FILL' 1" }}>route</span>
             </div>
-            <h3 className="text-2xl font-bold text-gray-900 mb-4">Intelligent Routing</h3>
-            <p className="text-gray-500 leading-relaxed font-medium">Proprietary routing engine that optimizes redistribution based on distance and urgency.</p>
+            <h3 className="text-xl md:text-2xl font-bold text-gray-900 mb-4">Intelligent Routing</h3>
+            <p className="text-gray-500 leading-relaxed font-medium text-sm md:text-base">Proprietary routing engine that optimizes redistribution based on distance and urgency.</p>
           </div>
         </div>
       </section>
 
       {/* Horizontal Auto-Scroll Fact Section */}
       <section className="pt-20 pb-32 bg-gray-50/50 border-y border-gray-100 overflow-hidden">
-        <div className="max-w-7xl mx-auto px-6 mb-16 flex flex-col md:flex-row justify-between items-end gap-6">
+        <div className="max-w-7xl mx-auto px-6 mb-12 md:mb-16 flex flex-col md:flex-row justify-between items-start md:items-end gap-6">
           <div>
             <span className="text-primary text-[10px] font-black uppercase tracking-widest mb-4 inline-block">Real-time Data</span>
-            <h2 className="text-5xl font-black text-gray-900 tracking-tighter">Critical Insights</h2>
-            <p className="text-gray-500 text-lg font-medium mt-2">Dynamic global statistics powered by Zerra analytics.</p>
+            <h2 className="text-4xl md:text-5xl font-black text-gray-900 tracking-tighter">Critical Insights</h2>
+            <p className="text-gray-500 text-base md:text-lg font-medium mt-2">Dynamic global statistics powered by Zerra analytics.</p>
           </div>
         </div>
 
@@ -150,7 +150,7 @@ const Landing = () => {
             }}
           >
             {loopFacts.map((fact, idx) => (
-              <div key={idx} className="inline-block w-[450px] shrink-0">
+              <div key={idx} className="inline-block w-[300px] md:w-[450px] shrink-0">
                 <div className="aspect-[16/10] rounded-[32px] overflow-hidden mb-8 bg-gray-200 shadow-lg border border-white">
                   <img src={fact.image} alt={fact.title} className="w-full h-full object-cover" />
                 </div>
