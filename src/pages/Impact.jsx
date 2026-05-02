@@ -260,22 +260,22 @@ const Impact = () => {
             {activeTab === 'analytics' ? 'Corporate redistribution metrics and growth analysis.' : 'Official report filing and case management.'}
           </p>
         </div>
-        <div className="flex bg-white p-1 rounded-xl border border-gray-200 shadow-sm w-full md:w-auto overflow-hidden">
-          <button 
-            onClick={() => setActiveTab('analytics')} 
-            className={`flex-1 md:flex-none px-6 py-2 text-[10px] font-black rounded-lg transition-all uppercase tracking-widest ${activeTab === 'analytics' ? 'bg-primary text-white shadow-lg' : 'text-gray-400 hover:text-gray-900'}`}
-          >
-            Dashboard
-          </button>
-          {userRole === 'Consumer' && (
+        {userRole === 'Consumer' && (
+          <div className="flex bg-white p-1 rounded-xl border border-gray-200 shadow-sm w-full md:w-auto overflow-hidden">
+            <button 
+              onClick={() => setActiveTab('analytics')} 
+              className={`flex-1 md:flex-none px-6 py-2 text-[10px] font-black rounded-lg transition-all uppercase tracking-widest ${activeTab === 'analytics' ? 'bg-primary text-white shadow-lg' : 'text-gray-400 hover:text-gray-900'}`}
+            >
+              Dashboard
+            </button>
             <button 
               onClick={() => setActiveTab('complaint')} 
               className={`flex-1 md:flex-none px-6 py-2 text-[10px] font-black rounded-lg transition-all uppercase tracking-widest ${activeTab === 'complaint' ? 'bg-primary text-white shadow-lg' : 'text-gray-400 hover:text-gray-900'}`}
             >
               Complaints
             </button>
-          )}
-        </div>
+          </div>
+        )}
       </div>
 
       {activeTab === 'complaint' && userRole === 'Consumer' ? (

@@ -88,16 +88,47 @@ const ComplaintFlow = ({ onComplete }) => {
       const { data: { user } } = await supabase.auth.getUser();
       const caseId = 'ZC-' + Math.random().toString(36).substr(2, 6).toUpperCase();
       
-      // 1. Store in Database
+      // 1. Upload Evidence to Supabase Storage for reliability (Base64 is too heavy for email triggers)
+      const uploadedUrls = [];
+      for (let i = 0; i < evidence.length; i++) {
+        try {
+          const base64Data = evidence[i];
+          const fileName = `${user.id}/${caseId}-${i}.jpg`;
+          
+          // Convert base64 to blob
+          const response = await fetch(base64Data);
+          const blob = await response.blob();
+
+          const { data, error: uploadError } = await supabase.storage
+            .from('complaints') // Ensure bucket 'complaints' exists and is public
+            .upload(fileName, blob, { 
+              contentType: 'image/jpeg',
+              upsert: true 
+            });
+
+          if (!uploadError) {
+            const { data: { publicUrl } } = supabase.storage
+              .from('complaints')
+              .getPublicUrl(fileName);
+            uploadedUrls.push(publicUrl);
+          } else {
+            console.warn('Image upload failed, falling back to database reference:', uploadError);
+          }
+        } catch (uploadErr) {
+          console.error('Error uploading image:', uploadErr);
+        }
+      }
+
+      // 2. Store in Database with Public URLs
       const { error } = await supabase.from('complaints').insert([{
         consumer_id: user.id,
         order_id: selectedOrder.id,
         category: classification,
         description: description,
-        evidence_urls: evidence.slice(0, 3),
+        evidence_urls: uploadedUrls.length > 0 ? uploadedUrls : evidence.slice(0, 3), // Fallback if upload fails
         status: 'Pending',
         consumer_name: userProfile?.full_name || 'Valued Consumer',
-        admin_email: 'varunsugandhi11@gmail.com',
+        admin_email: 'varunsugandhi0@gmail.com',
         case_id: caseId
       }]);
 
@@ -105,7 +136,7 @@ const ComplaintFlow = ({ onComplete }) => {
 
       // 2. Simulated Professional Email Dispatch
       // In a real production environment, you would use a Supabase Edge Function with Resend/SendGrid.
-      console.log(`[SYSTEM] Dispatching official integrity report ${caseId} to varunsugandhi11@gmail.com`);
+      console.log(`[SYSTEM] Dispatching official integrity report ${caseId} to varunsugandhi0@gmail.com`);
       await new Promise(resolve => setTimeout(resolve, 2000)); // Simulate network latency for "premium" feel
 
       // 3. Local Notifications
@@ -129,7 +160,7 @@ const ComplaintFlow = ({ onComplete }) => {
 
       onComplete({ 
         type: 'success', 
-        message: `Report ${caseId} has been successfully filed and dispatched to compliance (varunsugandhi11@gmail.com).` 
+        message: `Report ${caseId} has been successfully filed and dispatched to compliance (varunsugandhi0@gmail.com).` 
       });
     } catch (err) {
       console.error(err);
@@ -307,7 +338,7 @@ const ComplaintFlow = ({ onComplete }) => {
         <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Review Summary</span>
       </div>
       
-      <div className="bg-white rounded-3xl md:rounded-[32px] border border-gray-100 shadow-xl shadow-gray-200/50 overflow-hidden">
+      <div className="bg-white rounded-3xl md:rounded-[32px] border border-gray-200 shadow-xl shadow-gray-200/50 overflow-hidden">
         <div className="p-6 md:p-10">
           <div className="flex flex-col md:flex-row justify-between items-start mb-8 md:mb-10 border-b border-gray-50 pb-6 md:pb-8 gap-4">
             <div>
@@ -375,7 +406,8 @@ const ComplaintFlow = ({ onComplete }) => {
           </div>
         </div>
 
-        <div className="p-6 md:p-10 bg-gray-50 border-t border-gray-100">
+        <div className="p-6 md:p-10 bg-gray-50 border-t border-gray-100 text-center">
+          <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-6">By submitting, you confirm the accuracy of this integrity report.</p>
           <button 
             onClick={handleSubmit}
             disabled={loading}
