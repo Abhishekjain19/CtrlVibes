@@ -82,7 +82,7 @@ const Auth = () => {
     <div className="min-h-screen bg-[#FDFDFD] flex items-center justify-center p-4 md:p-6 lg:p-10 font-['Inter']">
       <div className="w-full max-w-6xl bg-white rounded-[40px] md:rounded-[60px] shadow-[0_40px_100px_-20px_rgba(0,0,0,0.1)] overflow-hidden flex flex-col lg:flex-row min-h-[80vh] border border-gray-100">
         {/* Left Side: Visual/Branding */}
-        <div className="w-full lg:w-[45%] bg-[#0A0A0A] p-8 md:p-12 lg:p-20 flex flex-col justify-between relative overflow-hidden text-white">
+        <div className="w-full lg:w-[45%] bg-[#0A0A0A] p-8 md:p-12 lg:p-20 flex flex-col justify-center gap-10 relative overflow-hidden text-white">
           <div className="absolute top-0 right-0 w-full h-full opacity-20 pointer-events-none">
             <div className="absolute top-[-10%] right-[-10%] w-[300px] md:w-[500px] h-[300px] md:h-[500px] bg-primary rounded-full blur-[100px] md:blur-[150px] animate-pulse"></div>
             <div className="absolute bottom-[-10%] left-[-10%] w-[250px] md:w-[400px] h-[250px] md:h-[400px] bg-secondary rounded-full blur-[80px] md:blur-[120px] delay-700 animate-pulse"></div>
@@ -97,7 +97,7 @@ const Auth = () => {
             </Link>
           </div>
 
-          <div className="relative z-10 mt-12 lg:mt-0">
+          <div className="relative z-10">
             <h1 className="text-4xl md:text-5xl lg:text-6xl font-black leading-[1.1] mb-6 md:mb-8 tracking-tighter">
               Ecosystem <br />
               <span className="text-primary italic font-serif">Redefined.</span>
@@ -107,16 +107,7 @@ const Auth = () => {
             </p>
           </div>
 
-          <div className="relative z-10 grid grid-cols-2 gap-4 md:gap-8 mt-12 lg:mt-0">
-            <div>
-              <p className="text-2xl md:text-3xl font-black text-white">2.4k+</p>
-              <p className="text-[10px] md:text-xs font-black text-gray-500 uppercase tracking-widest mt-1">Verified Hubs</p>
-            </div>
-            <div>
-              <p className="text-2xl md:text-3xl font-black text-primary">12.8M</p>
-              <p className="text-[10px] md:text-xs font-black text-gray-500 uppercase tracking-widest mt-1">Liters Saved</p>
-            </div>
-          </div>
+
         </div>
 
         {/* Right Side: Auth Form */}

@@ -25,8 +25,13 @@ Zerra is a high-fidelity, professional surplus redistribution and inventory mana
 - **Real-Time Progress**: Full-screen tracking interface with live progress bars and dynamic map routing.
 
 ### 5. Advanced Impact Analytics & Support
-- **Sustainability Dashboard**: Data visualization using Recharts, detailing CO2 and water preservation.
-- **Consumer Support System**: Full-fledged complaint reporting system allowing users to upload evidence (camera/gallery) and submit detailed structured feedback linked to their purchase history.
+- **Sustainability Dashboard**: High-fidelity data visualization using Recharts, detailing redirected weight, value recovered, and fuel saved through dynamic temporal growth reports.
+- **Consumer Integrity Protection**: A specialized module restricted to **Consumer** roles. Features an official report filing system with:
+    - **Order Integration**: Direct linking of complaints to purchase history.
+    - **Evidence Capture**: Multi-source evidence upload (Gallery/Camera).
+    - **Official Dispatch**: Automated simulation of email reports sent to compliance administrators (`varunsugandhi11@gmail.com`).
+    - **Case Tracking**: Unique case IDs (e.g., `ZC-XXXXXX`) for every submission.
+- **Role-Based Access Control (RBAC)**: Intelligent UI masking that ensures "Consumer Integrity" features are only visible and accessible to verified Consumer accounts, maintaining platform security and role-specific workflows.
 
 ## 🛠️ Technology Stack
 

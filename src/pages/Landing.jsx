@@ -70,23 +70,7 @@ const Landing = () => {
             <img src={heroBg} alt="Sustainability" className="w-full h-full object-cover" />
             <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent"></div>
             
-            {/* Floating Impact Card (Reduced Size) */}
-            <motion.div 
-              initial={{ y: 20, opacity: 0 }}
-              animate={{ y: 0, opacity: 1 }}
-              transition={{ delay: 0.8, duration: 0.8 }}
-              className="absolute bottom-6 left-6 right-6 bg-white/95 backdrop-blur-md rounded-2xl p-4 border border-white/20 shadow-xl"
-            >
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-primary/10 rounded-xl flex items-center justify-center text-primary">
-                  <span className="material-symbols-outlined text-xl" style={{fontVariationSettings: "'FILL' 1"}}>trending_up</span>
-                </div>
-                <div>
-                  <p className="text-lg font-black text-gray-900 tracking-tighter">1.3B Tons</p>
-                  <p className="text-[8px] font-bold text-gray-400 uppercase tracking-widest">Global Waste</p>
-                </div>
-              </div>
-            </motion.div>
+
           </motion.div>
           {/* Decorative Elements */}
           <div className="absolute -top-10 -right-10 w-40 h-40 bg-secondary/10 rounded-full blur-3xl -z-10"></div>

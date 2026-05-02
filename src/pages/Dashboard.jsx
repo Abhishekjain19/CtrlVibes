@@ -287,34 +287,22 @@ const Dashboard = () => {
                   zoomControl={false}
                 >
                   <TileLayer url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png" />
-                  <MarkerClusterGroup>
-                    {listings.map(item => (
-                      <Marker 
-                        key={item.id} 
-                        position={[item.profiles?.location_lat || 12.9716, item.profiles?.location_lng || 77.5946]}
-                        icon={item.type === 'Cooked' ? foodIcon : packedIcon}
-                      >
-                        <Popup className="custom-popup">
-                          <div className="p-2">
-                            <h4 className="font-black text-gray-900">{item.name}</h4>
-                            <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">{item.type}</p>
-                          </div>
-                        </Popup>
-                       <Marker 
-                        key={l.id} 
-                        position={[userCoords[0] + (Math.random()-0.5)*0.01, userCoords[1] + (Math.random()-0.5)*0.01]} 
-                        icon={createMarkerIcon('#EF4444', `${l.name} • ${l.profiles?.full_name?.split(' ')[0] || 'Seller'}`)}
-                       >
-                         <Popup>
-                           <div className="p-2 text-center">
-                             <p className="font-black text-gray-900 text-xs mb-1">{l.name}</p>
-                             <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">{l.profiles?.full_name || 'Verified Vendor'}</p>
-                             <p className="text-[10px] font-bold text-red-500 uppercase tracking-widest">{l.quantity} Available</p>
-                           </div>
-                         </Popup>
-                       </Marker>
-                     ))}
-                   </MapContainer>
+                  {listings.map(l => (
+                    <Marker 
+                     key={l.id} 
+                     position={[userCoords[0] + (Math.random()-0.5)*0.01, userCoords[1] + (Math.random()-0.5)*0.01]} 
+                     icon={createMarkerIcon('#EF4444', `${l.name} • ${l.profiles?.full_name?.split(' ')[0] || 'Seller'}`)}
+                    >
+                      <Popup>
+                        <div className="p-2 text-center">
+                          <p className="font-black text-gray-900 text-xs mb-1">{l.name}</p>
+                          <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">{l.profiles?.full_name || 'Verified Vendor'}</p>
+                          <p className="text-[10px] font-bold text-red-500 uppercase tracking-widest">{l.quantity} Available</p>
+                        </div>
+                      </Popup>
+                    </Marker>
+                  ))}
+                </MapContainer>
                 </div>
               </div>
             </>

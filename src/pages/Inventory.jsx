@@ -543,42 +543,71 @@ If date is "Best before 6 months from mfg" and mfg is "01/24", calculate "2024-0
                 >
                   <div className="flex items-center gap-6">
                     <div className="w-16 h-16 bg-gray-50 rounded-2xl flex items-center justify-center text-gray-400 group-hover:bg-primary/5 group-hover:text-primary transition-colors">
-            const isCritical = daysLeft <= 2;
-            return (
-              <div key={item.id} className="bg-white rounded-3xl border border-gray-100 p-8 shadow-sm flex flex-col lg:flex-row items-center gap-8 group hover:shadow-xl transition-all duration-500">
-                <div className="w-20 h-20 bg-gray-50 rounded-2xl flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform">
-                   <span className="material-symbols-outlined text-4xl text-gray-300">inventory_2</span>
-                </div>
-                <div className="flex-1 text-center lg:text-left">
-                  <div className="flex flex-col lg:flex-row lg:items-center gap-2 mb-2">
-                    <h3 className="text-xl font-black text-gray-900">{item.name || item.title}</h3>
-                    <div className={`inline-flex items-center px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest border ${daysLeft <= 2 ? 'text-red-600 bg-red-50' : 'text-green-600 bg-green-50'}`}>
-                      {daysLeft <= 0 ? 'Expired' : `${daysLeft} Days to Expiry`}
+                      <span className="material-symbols-outlined text-3xl">local_shipping</span>
+                    </div>
+                    <div>
+                      <h3 className="text-xl font-black text-gray-900">{item.listings?.name || item.listings?.title}</h3>
+                      <p className="text-gray-400 text-sm font-medium mt-1">Claimed by {item.profiles?.full_name || 'Partner'}</p>
                     </div>
                   </div>
-                  <div className="flex flex-wrap justify-center lg:justify-start gap-6">
-                    <div className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Quantity: <span className="text-gray-900">{item.stock || item.quantity}</span></div>
-                    <div className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Price: <span className="text-gray-900">{item.price ? `₹${item.price}` : 'Free'}</span></div>
+                  <div className="text-right flex flex-col items-end">
+                    <span className={`px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest ${item.status === 'Completed' ? 'bg-green-50 text-green-600' : 'bg-primary/10 text-primary'}`}>
+                      {item.status}
+                    </span>
+                    <span className="text-gray-400 text-xs font-bold mt-2">{new Date(item.created_at).toLocaleDateString()}</span>
                   </div>
                 </div>
-                
-                <div className="flex flex-col gap-2 shrink-0">
-                  <button onClick={() => { window._scanTargetId = item.id; setScanResult(null); setScanModal(true); }} className="px-8 py-3 rounded-2xl font-black text-xs uppercase tracking-[0.2em] transition-all border-2 border-gray-100 hover:border-gray-200 bg-white text-gray-600 flex items-center justify-center gap-2">
-                    <span className="material-symbols-outlined text-sm">barcode_scanner</span>
-                    Scan Expiry
-                  </button>
-                  <button onClick={() => item.status !== 'Live' && listToMarketplace(item.id)} className={`px-8 py-3 rounded-2xl font-black text-xs uppercase tracking-[0.2em] transition-all shadow-sm ${item.status === 'Live' ? 'bg-green-50 text-green-600' : 'bg-primary text-white hover:bg-tertiary'}`}>
-                    {item.status === 'Live' ? 'Item is Live' : 'Push to Market'}
-                  </button>
-                </div>
-              </div>
-            );
-          })
+              ))}
+            </div>
+          ) : (
+            <div className="py-20 text-center bg-gray-50 rounded-[40px] border border-dashed border-gray-200">
+               <span className="material-symbols-outlined text-6xl text-gray-200 mb-4">history</span>
+               <p className="text-gray-400 font-bold uppercase text-[10px] tracking-widest">Your history vault is currently empty</p>
+            </div>
+          )
         ) : (
-          <div className="py-20 text-center bg-gray-50 rounded-[40px] border border-dashed border-gray-200">
-             <span className="material-symbols-outlined text-6xl text-gray-200 mb-4">inventory</span>
-             <p className="text-gray-400 font-bold uppercase text-[10px] tracking-widest">Your {inventoryMode} vault is currently empty</p>
-          </div>
+          inventory.length > 0 ? (
+            <div className="space-y-4">
+              {inventory.map(item => {
+                const daysLeft = calculateDaysRemaining(item.expiry_date);
+                const isCritical = daysLeft <= 2;
+                return (
+                  <div key={item.id} className="bg-white rounded-3xl border border-gray-100 p-8 shadow-sm flex flex-col lg:flex-row items-center gap-8 group hover:shadow-xl transition-all duration-500">
+                    <div className="w-20 h-20 bg-gray-50 rounded-2xl flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform">
+                       <span className="material-symbols-outlined text-4xl text-gray-300">inventory_2</span>
+                    </div>
+                    <div className="flex-1 text-center lg:text-left">
+                      <div className="flex flex-col lg:flex-row lg:items-center gap-2 mb-2">
+                        <h3 className="text-xl font-black text-gray-900">{item.name || item.title}</h3>
+                        <div className={`inline-flex items-center px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest border ${daysLeft <= 2 ? 'text-red-600 bg-red-50' : 'text-green-600 bg-green-50'}`}>
+                          {daysLeft <= 0 ? 'Expired' : `${daysLeft} Days to Expiry`}
+                        </div>
+                      </div>
+                      <div className="flex flex-wrap justify-center lg:justify-start gap-6">
+                        <div className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Quantity: <span className="text-gray-900">{item.stock || item.quantity}</span></div>
+                        <div className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Price: <span className="text-gray-900">{item.price ? `₹${item.price}` : 'Free'}</span></div>
+                      </div>
+                    </div>
+                    
+                    <div className="flex flex-col gap-2 shrink-0">
+                      <button onClick={() => { window._scanTargetId = item.id; setScanResult(null); setScanModal(true); }} className="px-8 py-3 rounded-2xl font-black text-xs uppercase tracking-[0.2em] transition-all border-2 border-gray-100 hover:border-gray-200 bg-white text-gray-600 flex items-center justify-center gap-2">
+                        <span className="material-symbols-outlined text-sm">barcode_scanner</span>
+                        Scan Expiry
+                      </button>
+                      <button onClick={() => item.status !== 'Live' && listToMarketplace(item.id)} className={`px-8 py-3 rounded-2xl font-black text-xs uppercase tracking-[0.2em] transition-all shadow-sm ${item.status === 'Live' ? 'bg-green-50 text-green-600' : 'bg-primary text-white hover:bg-tertiary'}`}>
+                        {item.status === 'Live' ? 'Item is Live' : 'Push to Market'}
+                      </button>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          ) : (
+            <div className="py-20 text-center bg-gray-50 rounded-[40px] border border-dashed border-gray-200">
+               <span className="material-symbols-outlined text-6xl text-gray-200 mb-4">inventory</span>
+               <p className="text-gray-400 font-bold uppercase text-[10px] tracking-widest">Your {inventoryMode} vault is currently empty</p>
+            </div>
+          )
         )}
       </div>
 

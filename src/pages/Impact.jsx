@@ -10,9 +10,10 @@ import ComplaintFlow from '../components/ComplaintFlow';
 const Impact = () => {
   const [activeTab, setActiveTab] = useState('analytics');
   const [selectedMetric, setSelectedMetric] = useState('orders');
-  const [stats, setStats] = useState({ orders: 0, fuelSaved: 0, moneySaved: 0 });
+  const [stats, setStats] = useState({ orders: 0, fuelSaved: 0, moneySaved: 0, weightRedirected: 0, carbonOffset: 0 });
   const [loading, setLoading] = useState(true);
   const [status, setStatus] = useState(null);
+  const [userRole, setUserRole] = useState(null);
 
   // Power BI Inspired Corporate Palette
   const colors = {
@@ -26,69 +27,109 @@ const Impact = () => {
 
   useEffect(() => {
     fetchImpactStats();
+    checkRole();
   }, []);
+
+  const checkRole = async () => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (user) {
+      const { data: profile } = await supabase.from('profiles').select('role').eq('id', user.id).single();
+      setUserRole(profile?.role);
+    }
+  };
 
   const fetchImpactStats = async () => {
     setLoading(true);
-    
-    // 1. Fetch overall totals
-    const { data: weights } = await supabase.from('profiles').select('total_redirected_weight');
-    const totalWeight = (weights || []).reduce((acc, curr) => acc + (Number(curr.total_redirected_weight) || 0), 0);
+    try {
+      // 1. Fetch aggregate metrics from ALL Profiles (Global Impact)
+      const { data: profiles } = await supabase.from('profiles').select('total_redirected_weight, carbon_offset, total_items_saved, total_value_recovered');
+      
+      const totalWeight = (profiles || []).reduce((acc, curr) => acc + (Number(curr.total_redirected_weight) || 0), 0);
+      const totalCarbon = (profiles || []).reduce((acc, curr) => acc + (Number(curr.carbon_offset) || 0), 0);
+      const totalItems = (profiles || []).reduce((acc, curr) => acc + (Number(curr.total_items_saved) || 0), 0);
+      const totalValue = (profiles || []).reduce((acc, curr) => acc + (Number(curr.total_value_recovered) || 0), 0);
 
-    const { data: completedHandoffs } = await supabase
-      .from('handoffs')
-      .select('created_at, weight, bid_amount, status')
-      .eq('status', 'Completed');
+      // 2. Fetch completed handoffs for monthly historical trends
+      const { data: completedHandoffs } = await supabase
+        .from('handoffs')
+        .select('created_at, weight, bid_amount, status, listings(weight)')
+        .eq('status', 'Completed');
 
-    const totalOrders = completedHandoffs?.length || 0;
-    const totalMoney = (completedHandoffs || []).reduce((acc, curr) => acc + (Number(curr.bid_amount) || 0), 0);
-    
-    setStats({
-      orders: totalOrders,
-      fuelSaved: Math.round(totalOrders * 0.15), 
-      moneySaved: totalMoney,
-      weightRedirected: totalWeight
-    });
-
-    // 2. Generate Monthly Data Dynamically
-    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-    const now = new Date();
-    const last6Months = [];
-    
-    for (let i = 5; i >= 0; i--) {
-      const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
-      last6Months.push({
-        month: months[d.getMonth()],
-        monthIdx: d.getMonth(),
-        year: d.getFullYear(),
-        orders: 0,
-        fuelSaved: 0,
-        moneySaved: 0,
-        weightRedirected: 0
+      // 3. Fetch logistics batches for REAL Fuel Savings (Algorithmic)
+      const { data: batches } = await supabase
+        .from('delivery_batches')
+        .select('*, handoffs(id)');
+      
+      const batchedItems = (batches || []).reduce((acc, b) => acc + (b.handoffs?.length > 1 ? b.handoffs.length : 0), 0);
+      const realFuelSaved = Number((batchedItems * 1.2).toFixed(1));
+      
+      setStats({
+        orders: totalItems, 
+        fuelSaved: realFuelSaved, 
+        moneySaved: totalValue, 
+        weightRedirected: totalWeight,
+        carbonOffset: totalCarbon
       });
-    }
 
-    if (completedHandoffs) {
-      completedHandoffs.forEach(h => {
-        const hDate = new Date(h.created_at);
-        const target = last6Months.find(m => m.monthIdx === hDate.getMonth() && m.year === hDate.getFullYear());
-        if (target) {
-          target.orders += 1;
-          target.weightRedirected += (Number(h.weight) || 0);
-          target.moneySaved += (Number(h.bid_amount) || 0);
-          target.fuelSaved = Math.round(target.orders * 0.15);
-        }
-      });
-    }
+      // 4. Generate Monthly Data Dynamically (Consistent with KPIs)
+      const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+      const now = new Date();
+      const last6Months = [];
+      
+      for (let i = 5; i >= 0; i--) {
+        const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+        last6Months.push({
+          month: months[d.getMonth()],
+          monthIdx: d.getMonth(),
+          year: d.getFullYear(),
+          orders: 0,
+          fuelSaved: 0,
+          moneySaved: 0,
+          weightRedirected: 0,
+          carbonOffset: 0
+        });
+      }
 
-    setMonthlyData(last6Months);
-    setLoading(false);
+      // Populate history from Handoffs
+      if (completedHandoffs) {
+        completedHandoffs.forEach(h => {
+          const hDate = new Date(h.created_at);
+          const target = last6Months.find(m => m.monthIdx === hDate.getMonth() && m.year === hDate.getFullYear());
+          if (target) {
+            target.orders += 1;
+            // Use handoff weight or fallback to listing weight
+            const weightVal = Number(h.weight) || Number(h.listings?.weight) || 0;
+            target.weightRedirected += weightVal;
+            target.moneySaved += Number(h.bid_amount) || 0;
+            target.carbonOffset += Number((weightVal * 0.5).toFixed(1));
+          }
+        });
+      }
+
+      // Populate Fuel History from Batches (to match the 13.0L in KPI)
+      if (batches) {
+        batches.forEach(b => {
+          const bDate = new Date(b.scheduled_at || b.created_at);
+          const target = last6Months.find(m => m.monthIdx === bDate.getMonth() && m.year === bDate.getFullYear());
+          if (target && b.handoffs?.length > 1) {
+            target.fuelSaved += Number((b.handoffs.length * 1.2).toFixed(1));
+          }
+        });
+      }
+
+      setMonthlyData(last6Months);
+    } catch (err) {
+      console.error('Impact Fetch Error:', err);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const metricConfig = {
     weightRedirected: { label: 'Weight Saved', key: 'weightRedirected', color: colors.success, unit: ' kg', icon: 'scale', display: stats.weightRedirected },
     orders: { label: 'Total Redistributed', key: 'orders', color: colors.primary, unit: ' items', icon: 'shopping_cart', display: stats.orders },
-    moneySaved: { label: 'Value Recovered', key: 'moneySaved', color: colors.accent1, unit: ' ₹', icon: 'payments', display: stats.moneySaved }
+    moneySaved: { label: 'Value Recovered', key: 'moneySaved', color: colors.accent1, unit: ' ₹', icon: 'payments', display: stats.moneySaved },
+    fuelSaved: { label: 'Fuel Saved', key: 'fuelSaved', color: '#FFD700', unit: ' L', icon: 'local_gas_station', display: stats.fuelSaved }
   };
 
   const CustomTooltip = ({ active, payload, label }) => {
@@ -101,7 +142,7 @@ const Impact = () => {
               <div className="w-2 h-2" style={{ backgroundColor: entry.color }}></div>
               <span className="text-[11px] text-gray-600 font-medium">{entry.name}:</span>
               <span className="text-[11px] text-gray-900 font-bold ml-auto">
-                {entry.dataKey === 'moneySaved' ? `₹${entry.value.toLocaleString()}` : `${entry.value}${metricConfig[selectedMetric].unit}`}
+                {entry.dataKey === 'moneySaved' ? `₹${Number(entry.value).toLocaleString()}` : `${entry.value}${metricConfig[selectedMetric].unit}`}
               </span>
             </div>
           ))}
@@ -114,7 +155,7 @@ const Impact = () => {
   const renderAnalytics = () => (
     <div className="space-y-6 bg-white/50 p-5 md:p-8 rounded-3xl md:rounded-[40px] border border-gray-100 min-h-auto md:min-h-[700px] shadow-sm">
       {/* KPI Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6">
         {Object.entries(metricConfig).map(([key, config]) => (
           <button 
             key={key} 
@@ -125,7 +166,7 @@ const Impact = () => {
               <div>
                 <p className={`text-[10px] font-black uppercase tracking-[0.2em] mb-2 ${selectedMetric === key ? 'text-primary' : 'text-gray-400'}`}>{config.label}</p>
                 <p className="text-xl md:text-3xl font-black text-gray-900 tracking-tight">
-                  {key === 'moneySaved' ? `₹${(config.display/1000).toFixed(1)}k` : `${config.display}${config.unit}`}
+                  {key === 'moneySaved' ? `₹${(Number(config.display)/1000).toFixed(1)}k` : `${config.display}${config.unit}`}
                 </p>
               </div>
               <span className={`material-symbols-outlined transition-colors text-2xl md:text-3xl ${selectedMetric === key ? 'text-primary' : 'text-gray-200'}`}>{config.icon}</span>
@@ -135,7 +176,7 @@ const Impact = () => {
       </div>
 
       {/* Dynamic Main Chart Area */}
-      <div className="bg-white p-6 md:p-10 rounded-3xl md:rounded-[40px] border border-gray-100 min-h-[400px] md:min-h-[500px] flex flex-col transition-all duration-500 shadow-sm">
+      <div className="bg-white p-6 md:p-10 rounded-3xl md:rounded-[40px] border border-gray-100 min-h-[400px] md:min-h-[500px] flex flex-col transition-all duration-500 shadow-sm overflow-hidden">
         {!selectedMetric ? (
           <div className="flex-1 flex flex-col items-center justify-center text-center space-y-4 opacity-50 py-10">
             <div className="w-16 h-16 md:w-20 md:h-20 bg-gray-50 rounded-full flex items-center justify-center">
@@ -158,45 +199,36 @@ const Impact = () => {
                 <span className="text-[9px] md:text-[10px] font-black text-gray-500 uppercase tracking-widest">{metricConfig[selectedMetric].label}</span>
               </div>
             </div>
-            <div className="h-[300px] md:h-[400px] w-full animate-in fade-in zoom-in-95 duration-1000">
-              <ResponsiveContainer width="100%" height="100%" minHeight={400}>
+            <div className="h-[350px] md:h-[450px] w-full animate-in fade-in zoom-in-95 duration-1000">
+              <ResponsiveContainer width="100%" height="100%">
                 {(selectedMetric === 'orders' || selectedMetric === 'weightRedirected') ? (
-                  <AreaChart data={monthlyData} margin={{ top: 20, right: 30, left: 0, bottom: 0 }}>
-                    <CartesianGrid strokeDasharray="0" vertical={false} stroke="#F5F5F5" />
+                  <AreaChart data={monthlyData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#F0F0F0" />
                     <XAxis dataKey="month" axisLine={false} tickLine={false} tick={{fill: '#999', fontSize: 10, fontWeight: 900}} dy={10} />
                     <YAxis axisLine={false} tickLine={false} tick={{fill: '#999', fontSize: 10, fontWeight: 900}} />
-                    <Tooltip content={<CustomTooltip />} cursor={{stroke: '#EEE', strokeWidth: 2}} />
+                    <Tooltip content={<CustomTooltip />} />
                     <Area 
                       type="monotone" 
-                      dataKey={selectedMetric} 
+                      dataKey={metricConfig[selectedMetric].key} 
                       name={metricConfig[selectedMetric].label}
                       stroke={metricConfig[selectedMetric].color} 
                       strokeWidth={4} 
                       fill={metricConfig[selectedMetric].color} 
-                      fillOpacity={0.05} 
-                    >
-                      <LabelList dataKey={selectedMetric} position="top" style={{ fontSize: '10px', fontWeight: '900', fill: metricConfig[selectedMetric].color }} />
-                    </Area>
+                      fillOpacity={0.1} 
+                    />
                   </AreaChart>
                 ) : (
-                  <BarChart data={monthlyData} margin={{ top: 20 }}>
-                    <CartesianGrid strokeDasharray="0" vertical={false} stroke="#F5F5F5" />
+                  <BarChart data={monthlyData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#F0F0F0" />
                     <XAxis dataKey="month" axisLine={false} tickLine={false} tick={{fill: '#999', fontSize: 10, fontWeight: 900}} />
                     <YAxis axisLine={false} tickLine={false} tick={{fill: '#999', fontSize: 10, fontWeight: 900}} />
-                    <Tooltip content={<CustomTooltip />} cursor={{fill: '#F9F9F9'}} />
+                    <Tooltip content={<CustomTooltip />} />
                     <Bar 
                       dataKey={metricConfig[selectedMetric].key} 
                       name={metricConfig[selectedMetric].label} 
                       fill={metricConfig[selectedMetric].color}
-                      radius={[8, 8, 0, 0]}
-                    >
-                      <LabelList 
-                        dataKey={metricConfig[selectedMetric].key} 
-                        position="top" 
-                        style={{ fontSize: '10px', fontWeight: '900', fill: '#999' }} 
-                        formatter={(val) => selectedMetric === 'moneySaved' ? `₹${(val/1000).toFixed(0)}k` : val}
-                      />
-                    </Bar>
+                      radius={[6, 6, 0, 0]}
+                    />
                   </BarChart>
                 )}
               </ResponsiveContainer>
@@ -207,20 +239,47 @@ const Impact = () => {
     </div>
   );
 
+  if (loading) {
+    return (
+      <div className="pt-24 min-h-screen bg-[#F3F2F1] flex items-center justify-center">
+        <div className="flex flex-col items-center gap-4">
+          <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
+          <p className="text-[10px] font-black uppercase tracking-widest text-gray-400">Loading Intelligence...</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="pt-24 px-4 md:px-6 max-w-7xl mx-auto pb-24 min-h-screen bg-[#F3F2F1]">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 md:mb-10 gap-6">
         <div>
-          <h1 className="text-2xl md:text-3xl font-black text-gray-900 tracking-tight">{activeTab === 'analytics' ? 'Impact Intelligence' : 'Consumer Integrity'}</h1>
-          <p className="text-gray-500 mt-1 font-medium text-sm md:text-base">{activeTab === 'analytics' ? 'Corporate redistribution metrics and growth analysis.' : 'Official report filing and case management.'}</p>
+          <h1 className="text-2xl md:text-3xl font-black text-gray-900 tracking-tight">
+            {activeTab === 'analytics' ? 'Impact Intelligence' : 'Consumer Integrity'}
+          </h1>
+          <p className="text-gray-500 mt-1 font-medium text-sm md:text-base">
+            {activeTab === 'analytics' ? 'Corporate redistribution metrics and growth analysis.' : 'Official report filing and case management.'}
+          </p>
         </div>
-        <div className="flex bg-white p-1 rounded-xl border border-gray-200 shadow-sm w-full md:w-auto">
-          <button onClick={() => setActiveTab('analytics')} className={`flex-1 md:flex-none px-6 py-2 text-[10px] font-black rounded-lg transition-all uppercase tracking-widest ${activeTab === 'analytics' ? 'bg-primary text-white shadow-lg' : 'text-gray-400 hover:text-gray-900'}`}>Dashboard</button>
-          <button onClick={() => setActiveTab('complaint')} className={`flex-1 md:flex-none px-6 py-2 text-[10px] font-black rounded-lg transition-all uppercase tracking-widest ${activeTab === 'complaint' ? 'bg-primary text-white shadow-lg' : 'text-gray-400 hover:text-gray-900'}`}>Complaints</button>
+        <div className="flex bg-white p-1 rounded-xl border border-gray-200 shadow-sm w-full md:w-auto overflow-hidden">
+          <button 
+            onClick={() => setActiveTab('analytics')} 
+            className={`flex-1 md:flex-none px-6 py-2 text-[10px] font-black rounded-lg transition-all uppercase tracking-widest ${activeTab === 'analytics' ? 'bg-primary text-white shadow-lg' : 'text-gray-400 hover:text-gray-900'}`}
+          >
+            Dashboard
+          </button>
+          {userRole === 'Consumer' && (
+            <button 
+              onClick={() => setActiveTab('complaint')} 
+              className={`flex-1 md:flex-none px-6 py-2 text-[10px] font-black rounded-lg transition-all uppercase tracking-widest ${activeTab === 'complaint' ? 'bg-primary text-white shadow-lg' : 'text-gray-400 hover:text-gray-900'}`}
+            >
+              Complaints
+            </button>
+          )}
         </div>
       </div>
 
-      {activeTab === 'analytics' ? renderAnalytics() : (
+      {activeTab === 'complaint' && userRole === 'Consumer' ? (
         <div className="animate-in fade-in slide-in-from-bottom-6 duration-700">
            <div className="mb-10 text-center max-w-xl mx-auto">
               <h2 className="text-2xl md:text-3xl font-black text-gray-900 tracking-tight mb-3">Integrity Protection</h2>
@@ -229,7 +288,7 @@ const Impact = () => {
            </div>
            <ComplaintFlow onComplete={setStatus} />
         </div>
-      )}
+      ) : renderAnalytics()}
       <StatusOverlay status={status} onClose={() => setStatus(null)} />
     </div>
   );
