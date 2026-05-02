@@ -26,20 +26,28 @@ const Impact = () => {
   const [monthlyData, setMonthlyData] = useState([]);
 
   useEffect(() => {
-    fetchImpactStats();
-    checkRole();
+    const init = async () => {
+      setLoading(true);
+      await checkRole();
+      await fetchImpactStats();
+      setLoading(false);
+    };
+    init();
   }, []);
 
   const checkRole = async () => {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (user) {
-      const { data: profile } = await supabase.from('profiles').select('role').eq('id', user.id).single();
-      setUserRole(profile?.role);
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        const { data: profile } = await supabase.from('profiles').select('role').eq('id', user.id).single();
+        setUserRole(profile?.role);
+      }
+    } catch (err) {
+      console.error('Role check error:', err);
     }
   };
 
   const fetchImpactStats = async () => {
-    setLoading(true);
     try {
       // 1. Fetch ALL completed handoffs for Global Source of Truth
       const { data: allCompleted } = await supabase
