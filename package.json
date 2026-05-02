@@ -10,7 +10,6 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "@blackbox-vision/react-qr-reader": "^5.0.0",
     "@supabase/supabase-js": "^2.105.1",
     "clsx": "^2.1.1",
     "dotenv": "^17.4.2",
