@@ -1,39 +1,49 @@
-# Zerra: Enterprise Food Redistribution Infrastructure
+# Zerra (CtrlVibes)
 
-Zerra is a high-fidelity, professional food redistribution platform designed to connect premium food purveyors (restaurants, cloud kitchens) with strategic community partners (NGOs, shelters, and eco-conscious consumers). Built with a "Flat-Enterprise" aesthetic, Zerra modernizes the redistribution process through real-time logistics, advanced analytics, and immersive tracking.
+Zerra is a high-fidelity, professional surplus redistribution and inventory management platform designed to connect premium food purveyors (restaurants, product sellers, cloud kitchens) with strategic community partners (NGOs, shelters, and eco-conscious consumers). Built with a modern "Flat-Enterprise" aesthetic, Zerra modernizes the redistribution process through real-time logistics, advanced AI analytics, expiry tracking, and immersive tracking.
 
 ## 🚀 Key Features
 
-### 1. Institutional Dashboard & Marketplace
-- **Pro-Map Overview**: Interactive Leaflet-based dashboard featuring professional CartoDB mapping and nearby purveyor discovery.
-- **High-Efficiency Marketplace**: List-based discovery engine with robust filtering for different food categories and redistribution types.
+### 1. Multi-Role Ecosystem
+- **NGO**: Receives priority alerts for surplus food and can claim donations seamlessly.
+- **Restaurant**: Frictionless surplus orchestration for cooked meals, tracking redistribution impact.
+- **Product Seller**: Manages packed goods, uses the AI scanner for expiry tracking, and pushes near-expiry products to the marketplace automatically.
+- **Consumer**: Hyper-local surplus discovery with Zepto-style tracking and a robust complaint/support system.
 
-### 2. Immersive Live Tracking
-- **Zepto-Style Experience**: Full-screen tracking interface with real-time arrival countdowns, live progress bars, and rider profiles.
-- **Order Lifecycle Management**: Dynamic switching between active tracking and detailed delivery receipts/impact summaries.
+### 2. AI-Powered Inventory Intelligence (The Vault)
+- **Vision AI Expiry Scanner**: Integrates NVIDIA's Llama 3.2 90B Vision Instruct model to automatically read product packaging, extracting names, brands, quantities, barcodes, and expiry dates from photos.
+- **Real-Time Barcode Scanning**: Uses the Open Food Facts API alongside `html5-qrcode` to instantly fetch product data globally.
+- **Smart Categorization**: Automatically flags items as 'Safe', 'Warning', 'Critical', or 'Expired'. Items nearing expiry are automatically pushed to the live marketplace with discount alerts sent to consumers and NGOs.
+- **Batch Processing**: Rapidly scan and add multiple items to the inventory vault.
 
-### 3. Advanced Impact Analytics
-- **Sustainability Dashboard**: Professional data visualization using Recharts, including monthly growth area charts and environmental resource (CO2/Water) preservation analysis.
-- **Institutional Reporting**: Categorized breakdown of resource allocation across different social sectors.
+### 3. Institutional Dashboard & Marketplace
+- **Pro-Map Overview**: Interactive Leaflet-based dashboard featuring CartoDB mapping, nearby purveyor discovery, and live heatmaps for surplus density.
+- **High-Efficiency Marketplace**: Robust filtering for different food categories (Cooked vs. Packed) and urgency levels.
 
-### 4. Premium Landing Infrastructure
-- **Modern Hero Experience**: Sophisticated split-screen hero layout with editorial-grade typography and floating impact visuals.
-- **Dynamic Storytelling**: Horizontal auto-scroll marquee powered by Framer Motion, showcasing global food waste insights.
+### 4. Immersive Live Tracking & Logistics
+- **Handoff Verification**: Secure QR-code/Secret based handoff system between sellers and NGO partners.
+- **Real-Time Progress**: Full-screen tracking interface with live progress bars and dynamic map routing.
+
+### 5. Advanced Impact Analytics & Support
+- **Sustainability Dashboard**: Data visualization using Recharts, detailing CO2 and water preservation.
+- **Consumer Support System**: Full-fledged complaint reporting system allowing users to upload evidence (camera/gallery) and submit detailed structured feedback linked to their purchase history.
 
 ## 🛠️ Technology Stack
 
-- **Frontend**: Vite + React
-- **Styling**: Tailwind CSS (Eco-Luxe Design System)
-- **Mapping**: React-Leaflet + CartoDB Positron
-- **Animations**: Framer Motion
+- **Frontend Core**: React 19 + Vite
+- **Backend & Auth**: Supabase (PostgreSQL, Realtime, Storage)
+- **AI Integration**: NVIDIA AI Endpoints (Llama 3.2 Vision)
+- **Product Data API**: Open Food Facts (OFF) API
+- **Styling**: Tailwind CSS (Eco-Luxe Design System) + Framer Motion for animations
+- **Mapping**: React-Leaflet + Leaflet + CartoDB Positron
 - **Charts**: Recharts
-- **Icons**: Material Symbols (Google)
+- **Icons & Scanning**: Material Symbols (Google), `html5-qrcode`, `react-qr-reader`
 
 ## 📁 Project Structure
 
-- `src/pages/`: Modular page components (Landing, Dashboard, Orders, Impact, etc.)
-- `src/components/`: Reusable UI components (Navbar, UI elements)
-- `src/assets/`: High-fidelity imagery and branding assets
+- `src/pages/`: Modular page components (Dashboard, Inventory, Marketplace, Profile, Support, etc.)
+- `src/components/`: Reusable UI elements (Navbar, Modals, Status Overlays, Camera integrations)
+- `src/supabaseClient.js`: Supabase connection configuration
 - `src/App.jsx`: Centralized routing and navigation architecture
 
 ## 🏁 Getting Started
@@ -43,7 +53,13 @@ Zerra is a high-fidelity, professional food redistribution platform designed to 
    ```bash
    npm install
    ```
-3. **Run the development server**:
+3. **Set up Environment Variables**:
+   Create a `.env` file in the root directory and configure your keys:
+   ```env
+   VITE_SUPABASE_URL=your_supabase_url
+   VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
+   ```
+4. **Run the development server**:
    ```bash
    npm run dev
    ```
